@@ -5,7 +5,7 @@ const ClientDashboard = lazy(() => import("./client/ClientDashboard"));
 const ClientPayment = lazy(() => import("./client/ClientPayment"));
 const PaymentReturn = lazy(() => import("./client/PaymentReturn"));
 const ClientPlantationHub = lazy(() => import("./client/ClientPlantationHub"));
-const StakeholderDashboard = lazy(() => import("./client/StakeholderDashboard"));
+import { canShowPayments } from "@/utils/portalRoles";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ type PrivateView = "dashboard" | "payment" | "plantation-hub";
 const SESSION_KEYS = [
   "agri_client","agri_plantations","agri_paiements",
   "agri_portal_access_token","agri_demo","agri_demo_token","agri_demo_code",
+  "agri_demo_messages","agri_demo_notifications","agri_notified_ids","agri_access_code_saved",
 ] as const;
 
 const readJson = <T,>(key: string): T | null => {
@@ -82,7 +83,7 @@ const ClientPortal = () => {
 
       const isDemoSession = sessionStorage.getItem("agri_demo") === "1" || storedClient?.demo === true;
 
-      if (!token && !storedClient) {
+      if (!token && !isDemoSession) {
         if (!cancelled) {
           setClient(null);
           setPlantations([]);
@@ -120,7 +121,7 @@ const ClientPortal = () => {
           sessionStorage.setItem("agri_client", JSON.stringify(nextClient));
           sessionStorage.setItem("agri_plantations", JSON.stringify(nextPlantations));
           sessionStorage.setItem("agri_paiements", JSON.stringify(nextPaiements));
-        } else if (!cancelled && error) {
+        } else if (!cancelled) {
           const httpStatus = error?.context?.status;
           if (httpStatus === 401 || httpStatus === 403 || !storedClient) {
             clearPortalSession();
@@ -145,8 +146,12 @@ const ClientPortal = () => {
 
   useEffect(() => {
     if (!client || isPaymentReturn || privateView === "dashboard" || privateView === "plantation-hub") return;
-    if (client.portal_primary_role !== "client") navigate("/dashboard", { replace: true });
+    if (!canShowPayments(client)) navigate("/dashboard", { replace: true });
   }, [client, isPaymentReturn, privateView, navigate]);
+
+  useEffect(() => {
+    if (!restoring && client && privateView === "plantation-hub" && !plantations.length) navigate("/dashboard", { replace: true });
+  }, [restoring, client, privateView, plantations.length, navigate]);
 
   useEffect(() => {
     if (privateView !== "plantation-hub" || !plantationId || !plantations.length) return;
@@ -212,8 +217,9 @@ const ClientPortal = () => {
     navigate("/", { replace: true });
   };
 
-  const goPayment = () => {
-    navigate("/paiements");
+  const goPayment = (options?: { prefillAmount?: number; prefillType?: "arriere" | "solde_paiement_initial" }) => {
+    if (!canShowPayments(client)) return;
+    navigate("/paiements", { state: options });
   };
 
   const renderView = () => {
@@ -221,10 +227,7 @@ const ClientPortal = () => {
     if (isPaymentReturn) return <PaymentReturn onBack={() => navigate(client ? "/dashboard" : "/", { replace: true })} />;
     if (!client) return null;
 
-    if (privateView === "plantation-hub" && plantations.length === 0) {
-      navigate("/dashboard", { replace: true });
-      return null;
-    }
+    if (privateView === "plantation-hub" && plantations.length === 0) return null;
 
     if (privateView === "plantation-hub") {
       return (
@@ -238,18 +241,7 @@ const ClientPortal = () => {
       );
     }
 
-    if (client.portal_primary_role !== "client") {
-      return (
-        <StakeholderDashboard
-          client={client}
-          plantations={plantations}
-          onPlantationHub={() => navigate("/plantations")}
-          onLogout={handleLogout}
-        />
-      );
-    }
-
-    if (privateView === "payment") {
+    if (privateView === "payment" && canShowPayments(client)) {
       return (
         <ClientPayment
           client={client}
@@ -267,7 +259,7 @@ const ClientPortal = () => {
         paiements={paiements}
         syncStatus={status}
         lastSync={lastSync}
-        onPayment={() => goPayment()}
+        onPayment={goPayment}
         onPlantationHub={() => navigate("/plantations")}
         onLogout={handleLogout}
       />
@@ -275,11 +267,11 @@ const ClientPortal = () => {
   };
 
   if (restoring && !isPaymentReturn && !client && !isHome) {
-    return <div className="min-h-screen bg-[#F7FAF8] flex items-center justify-center text-[#00643C]">Chargement de votre espace…</div>;
+    return <div className="min-h-screen bg-background flex items-center justify-center text-primary">Chargement de votre espace…</div>;
   }
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#F7FAF8] flex items-center justify-center text-[#00643C]">Chargement de votre espace…</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-primary">Chargement de votre espace…</div>}>
       <>
         <InstallPrompt />
         {renderView()}
