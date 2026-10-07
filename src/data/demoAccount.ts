@@ -16,7 +16,7 @@ export const createDemoAccount = (telephone="+2250700000000") => {
     ["fertilisation","Fertilisation","pending",0,"Plan de fertilisation à venir."],
     ["mise_production","Mise en production","pending",0,"Étape future."],
     ["remise","Remise au client","pending",0,"Étape finale du parcours."]
-  ].map(([key,label,statut,days,commentaire])=>({key,type:key,label,statut,date_realisation:statut==="pending"?null:d(days),commentaire}));
+  ].map(([key,label,statut,days,commentaire])=>({key,type:key,label,statut,date_realisation:statut==="pending"?null:d(Number(days)),commentaire}));
   const reports:any[]=Array.from({length:6},(_,i)=>{const n=i+1;return{id:"DEMO-R-"+n,titre:"Rapport de suivi technique M"+n,date_visite:d(-30+i*5),statut:"valide",client_visible:true,etat_plantation:n===6?"Reprise satisfaisante, suivi en cours.":"Phase de mise en place suivie.",contenu:"Rapport de démonstration M"+n+" : observations, travaux réalisés et recommandations.",prochaine_intervention:d(14),medias:[{id:"DEMO-RM-"+n,media_type:"photo",url:"/demo/plantation-"+n+".jpg?v=2",nom_fichier:"suivi-m"+n+".jpg",description:"Photo terrain M"+n} ]};});
   const plantation:any={
     id:plantationId,id_unique:"PL-DEMO-001",nom:"Plantation démonstration",nom_plantation:"PalmTerroir — Démonstration Gonaté",

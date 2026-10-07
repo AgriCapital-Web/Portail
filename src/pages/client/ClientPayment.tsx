@@ -61,7 +61,7 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
   const montantTotal = useMemo(() => {
     if (typePaiement === "pi") return dbInitialDue;
     if (paymentMode === "custom") return Math.max(0, Number(customAmount) || 0);
-    return paymentMode === "custom" ? Math.max(0, Number(customAmount) || 0) : dbMonthlyBase * Number(paymentMode);
+    return dbMonthlyBase * Number(paymentMode);
   }, [typePaiement, paymentMode, customAmount, dbMonthlyBase, dbInitialDue]);
 
   const kkiapayFeeRate = Math.max(0, Number(client?.portal_config?.kkiapay_mobile_money_fee_rate || 0));
