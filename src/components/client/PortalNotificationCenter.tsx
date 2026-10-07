@@ -40,7 +40,16 @@ if(!token) return;
       setItems(next);
     }
     if(!isInitial){
-      const fresh=next.filter((n:any)=>!previous.has(n.id)&&!n.read);
+      // Anti-doublon : un même identifiant n'est notifié qu'une seule fois par session,
+      // et si l'onglet est masqué avec un abonnement push actif, le service worker s'en charge.
+      let notified:Set<string>;
+      try{notified=new Set(JSON.parse(sessionStorage.getItem("agri_notified_ids")||"[]"));}catch{notified=new Set();}
+      const fresh=next.filter((n:any)=>!previous.has(n.id)&&!n.read&&!notified.has(String(n.dedupe_key||n.id)));
+      fresh.forEach((n:any)=>notified.add(String(n.dedupe_key||n.id)));
+      sessionStorage.setItem("agri_notified_ids",JSON.stringify([...notified].slice(-300)));
+      if(document.hidden&&"serviceWorker" in navigator){
+        try{const reg=await navigator.serviceWorker.ready;if(await reg.pushManager.getSubscription())return;}catch{/* fallback local */}
+      }
       for(const n of fresh){
         void showNotification({
           title:n.title,
@@ -61,6 +70,7 @@ if(!token) return;
   const unread=items.filter(n=>!n.read).length;
   const enable=async()=>{ await requestPermission(); };
   const markAll=async()=>{
+    if(sessionStorage.getItem("agri_demo")==="1"){setItems(prev=>{const n=prev.map(x=>({...x,read:true}));sessionStorage.setItem("agri_demo_notifications",JSON.stringify(n));return n;});return;}
     const token=sessionStorage.getItem("agri_portal_access_token");
     if(!token) return;
     await supabase.functions.invoke("portal-messaging",{body:{action:"mark_notification_read",access_token:token}});

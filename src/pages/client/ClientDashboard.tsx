@@ -84,13 +84,9 @@ const ClientDashboard = ({
   const hectaresActifs = plantations.reduce((s: number, p: any) => s + (p.superficie_activee || 0), 0);
 
   const getInitials = (name: string) => name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'AC';
-  const offreNom = isDemo ? 'Démonstration' : (client.offres?.nom || '—');
+  const offreNom = (client.offres?.nom || '—');
 
   const handlePayment = useCallback((options?: { prefillAmount?: number; prefillType?: 'arriere' | 'solde_paiement_initial' }) => {
-    if (isDemo) {
-      toast({ title: "Paiement indisponible en démonstration", description: "Aucun paiement réel ne peut être initié depuis ce mode." });
-      return;
-    }
     onPayment(options);
   }, [isDemo, onPayment, toast]);
 

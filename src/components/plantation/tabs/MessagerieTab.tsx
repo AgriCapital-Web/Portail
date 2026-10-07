@@ -63,7 +63,7 @@ if (!token) {
     });
     if (!error && data?.success) {
       const nextMessages=data.messages||[];
-      const unread=nextMessages.filter((m:any)=>m.auteur_type==="staff"&&!m.lu).map((m:any)=>m.id);
+      const unread=nextMessages.filter((m:any)=>m.auteur_type!=="client"&&!m.lu).map((m:any)=>m.id);
       if(unread.length){const readAt=new Date().toISOString();await supabase.functions.invoke("portal-messaging",{body:{action:"mark_read",access_token:token,plantation_id:plantation?.id||null}});setMessages(nextMessages.map((m:any)=>unread.includes(m.id)?{...m,lu:true,lu_at:readAt}:m));}else setMessages(nextMessages);
     }
     setLoading(false);
@@ -112,7 +112,18 @@ if (isDemo) {
 const current = (() => { try { return JSON.parse(sessionStorage.getItem("agri_demo_messages") || "null"); } catch { return null; } })() || client?.demo_messages || plantation?.messages || [];
 const next = [...current, { id: "DEMO-LOCAL-" + Date.now(), auteur_type: "client", auteur_nom: client?.nom_complet || "Compte DÉMO", message, created_at: new Date().toISOString(), lu: true }];
 sessionStorage.setItem("agri_demo_messages", JSON.stringify(next));
-setMessages(next); setDraft(""); removePending(); return;
+setMessages(next); setDraft(""); removePending();
+// Réponse simulée locale — aucune écriture en base.
+window.setTimeout(() => {
+  try {
+    const cur = JSON.parse(sessionStorage.getItem("agri_demo_messages") || "[]");
+    const reply = { id: "DEMO-REPLY-" + Date.now(), auteur_type: "commercial", auteur_nom: client?.commercial?.nom || "Conseiller AgriCapital", message: "Merci pour votre message. Ceci est une réponse simulée du mode démonstration.", created_at: new Date().toISOString(), lu: true };
+    const updated = [...(Array.isArray(cur) ? cur : next), reply];
+    sessionStorage.setItem("agri_demo_messages", JSON.stringify(updated));
+    setMessages(updated);
+  } catch { /* noop */ }
+}, 1500);
+return;
 }
 if (!token) return;
     setSending(true);
