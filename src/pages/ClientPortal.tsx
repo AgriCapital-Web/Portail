@@ -260,7 +260,7 @@ const ClientPortal = () => {
         syncStatus={status}
         lastSync={lastSync}
         onPayment={goPayment}
-        onPlantationHub={() => navigate("/plantations")}
+        onPlantationHub={(id) => navigate(id ? "/plantations/" + encodeURIComponent(id) : "/plantations")}
         onLogout={handleLogout}
       />
     );

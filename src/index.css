@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -25,13 +23,13 @@ h1, h2, h3, .font-display {
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 210 2% 35%;
+    --foreground: 155 18% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 210 2% 35%;
+    --card-foreground: 155 18% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 2% 35%;
+    --popover-foreground: 155 18% 16%;
 
     /* Vert AgriCapital #00643C */
     --primary: 158 100% 20%;
@@ -43,7 +41,7 @@ h1, h2, h3, .font-display {
     --secondary-foreground: 210 2% 35%;
 
     --muted: 210 5% 96%;
-    --muted-foreground: 210 3% 50%;
+    --muted-foreground: 155 6% 40%;
 
     /* Or/Doré #E89C31 */
     --accent: 38 77% 55%;
@@ -61,7 +59,7 @@ h1, h2, h3, .font-display {
     --input: 210 3% 88%;
     --ring: 158 100% 20%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     --gradient-primary: linear-gradient(135deg, hsl(158 100% 20%), hsl(158 100% 28%));
     --gradient-accent: linear-gradient(135deg, hsl(38 77% 55%), hsl(38 70% 48%));
@@ -198,4 +196,23 @@ h1, h2, h3, .font-display {
   .client-page-content,.client-page-content *{min-width:0}
   .client-page-content{width:100%;max-width:100%;overflow-x:hidden}
   .client-page-content table{display:block;width:100%;max-width:100%;overflow-x:auto}
+}
+
+/* Shared portal surfaces remain independent of content height. */
+@layer components {
+  .portal-shell { background: hsl(var(--muted) / 0.5); color: hsl(var(--foreground)); }
+  .portal-header { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .portal-logo { background: hsl(var(--card)); }
+  .plantation-content .rounded-2xl { border-radius: var(--radius); }
+  .plantation-content [class~="text-[10px]"],
+  .plantation-content [class~="text-[9px]"],
+  .plantation-content [class~="text-[8px]"] { font-size: 0.75rem; line-height: 1.4; }
+  .plantation-content [class~="text-[11px]"] { font-size: 0.8125rem; line-height: 1.5; }
+  .plantation-content [role="tablist"] { max-width: 100%; }
+  .plantation-content [role="tabpanel"] { min-width: 0; }
+  .plantation-content button { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
