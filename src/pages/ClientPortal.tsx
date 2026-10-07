@@ -213,7 +213,6 @@ const ClientPortal = () => {
   };
 
   const goPayment = () => {
-    if (client?.demo === true || sessionStorage.getItem("agri_demo") === "1") return;
     navigate("/paiements");
   };
 

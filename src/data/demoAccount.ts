@@ -16,8 +16,8 @@ export const createDemoAccount = (telephone="+2250700000000") => {
     ["fertilisation","Fertilisation","pending",0,"Plan de fertilisation à venir."],
     ["mise_production","Mise en production","pending",0,"Étape future."],
     ["remise","Remise au client","pending",0,"Étape finale du parcours."]
-  ].map(([key,label,statut,days,commentaire])=>({key,type:key,label,statut,date_realisation:statut==="pending"?null:d(days),commentaire}));
-  const reports:any[]=Array.from({length:6},(_,i)=>{const n=i+1;return{id:"DEMO-R-"+n,titre:"Rapport de suivi technique M"+n,date_visite:d(-30+i*5),statut:"valide",client_visible:true,etat_plantation:n===6?"Reprise satisfaisante, suivi en cours.":"Phase de mise en place suivie.",contenu:"Rapport de démonstration M"+n+" : observations, travaux réalisés et recommandations.",prochaine_intervention:d(14),medias:[{id:"DEMO-RM-"+n,media_type:"photo",url:"/demo/plantation-"+n+".jpg",nom_fichier:"suivi-m"+n+".jpg",description:"Photo terrain M"+n} ]};});
+  ].map(([key,label,statut,days,commentaire])=>({key,type:key,label,statut,date_realisation:statut==="pending"?null:d(Number(days)),commentaire}));
+  const reports:any[]=Array.from({length:6},(_,i)=>{const n=i+1;return{id:"DEMO-R-"+n,titre:"Rapport de suivi technique M"+n,date_visite:d(-30+i*5),statut:"valide",client_visible:true,etat_plantation:n===6?"Reprise satisfaisante, suivi en cours.":"Phase de mise en place suivie.",contenu:"Rapport de démonstration M"+n+" : observations, travaux réalisés et recommandations.",prochaine_intervention:d(14),medias:[{id:"DEMO-RM-"+n,media_type:"photo",url:"/demo/plantation-"+n+".jpg?v=2",nom_fichier:"suivi-m"+n+".jpg",description:"Photo terrain M"+n} ]};});
   const plantation:any={
     id:plantationId,id_unique:"PL-DEMO-001",nom:"Plantation démonstration",nom_plantation:"PalmTerroir — Démonstration Gonaté",
     statut:"active",statut_global:"actif",formule_code:"PALMTERROIR",formule_nom:"PalmTerroir",superficie_ha:2.5,superficie_activee:2.5,
@@ -25,7 +25,7 @@ export const createDemoAccount = (telephone="+2250700000000") => {
     variete:"Tenera sélectionnée",date_activation:d(-20),date_plantation:d(-6),derniere_visite:d(-2),derniere_intervention:"Contrôle de reprise",
     prochaine_intervention:"Dans 14 jours",village:"Gonaté",village_nom:"Gonaté — zone agricole démonstration",localite:"GONATÉ",
     latitude:6.97,longitude:-6.22,localisation_gps_lat:6.97,localisation_gps_lng:-6.22,etapes:steps,interventions:steps,
-    medias:[1,2,3,4,5,6].map(n=>({id:"DEMO-M-"+n,type:"photo",url:"/demo/plantation-"+n+".jpg",operation:steps[n-1].label,commentaire:"Photo terrain de démonstration.",date:steps[n-1].date_realisation||d(-2)})),
+    medias:[1,2,3,4,5,6].map(n=>({id:"DEMO-M-"+n,type:"photo",url:"/demo/plantation-"+n+".jpg?v=2",operation:steps[n-1].label,commentaire:"Photo terrain de démonstration.",date:steps[n-1].date_realisation||d(-2)})),
     documents:[
       {id:"DEMO-D1",nom:"Contrat de souscription — Démo",categorie:"Contrat",statut:"valide",url:"/demo/contrat-souscription-demo.pdf"},
       {id:"DEMO-D2",nom:"Plan de localisation — Démo",categorie:"Foncier",statut:"valide",url:"/demo/plan-localisation-demo.pdf"},
@@ -45,12 +45,13 @@ export const createDemoAccount = (telephone="+2250700000000") => {
     telephone,telephone_local:telephone.replace(/^\+\d{1,3}/,""),telephone_indicatif:telephone.match(/^\+\d{1,3}/)?.[0]||"+225",
     email:"demo@agricapital.ci",localite:"GONATÉ",type_client:"client_officiel",statut:"actif",statut_global:"a_jour",compte_actif:true,demo:true,_demo:true,
     total_hectares:2.5,nombre_plantations:1,phase_actuelle:"reprise",famille_offre:"PalmTerroir",formule_code:"PALMTERROIR",formule_nom:"PalmTerroir",
-    offres:{nom:"PalmTerroir",formule_nom:"PalmTerroir"},photo_profil_url:"/demo/photo-client.jpg",numero_contrat:"DEMO-AC-2026",
+    offres:{nom:"PalmTerroir",formule_nom:"PalmTerroir"},photo_profil_url:"/demo/photo-client.jpg?v=2",portal_primary_role:"client",offre_id:"DEMO-OFFRE-PALMTERROIR",paiement_initial_montant:250000,
+    paiement_etat:{paiement_initial:{montant:250000,paye:250000,solde:0},mensualite:{montant:12500,montant_a_payer:12500,montant_arriere:0,jours_retard:0,hectares_actifs:2.5}},numero_contrat:"DEMO-AC-2026",
     parcelle:{id:"DEMO-PARCELLE-001",id_unique:"PAR-DEMO-001",nom:"Parcelle démonstration — Gonaté",surface_totale_ha:2.5,village:"Gonaté",village_nom:"Gonaté — zone agricole démonstration",localisation_gps_lat:6.97,localisation_gps_lng:-6.22,statut:"actif"},
     parcelles:[],attributions:[],proprietaire:null,documents:plantation.documents,technique_interventions:steps,
     technique_progression:steps.map((e:any)=>({key:e.key,label:e.label,statut:e.statut,date:e.date_realisation,commentaire:e.commentaire})),
-    commercial:{nom:"KONAN AMENAN LARISSA",fonction:"Conseiller AgriCapital",telephone:"+2250700000000",email:"commercial@agricapital.ci",photo:"/demo/photo-client.jpg",photo_url:"/demo/photo-client.jpg"},
-    technicien:{nom:"KOUAMÉ PIERRE KOFFI",fonction:"Technicien terrain",telephone:"+2250700000001",photo_url:"/demo/photo-client.jpg"},
+    commercial:{nom:"KONAN AMENAN LARISSA",fonction:"Conseiller AgriCapital",telephone:"+2250700000000",email:"commercial@agricapital.ci",photo:null,photo_url:null},
+    technicien:{nom:"KOUAMÉ PIERRE KOFFI",fonction:"Technicien terrain",telephone:"+2250700000001",photo_url:null},
     techniciens:[],demo_messages:plantation.messages,
     demo_notifications:[
       {id:"DEMO-N1",title:"Mise en terre terminée",message:"La mise en terre a été réalisée et contrôlée.",created_at:d(-6),read:true,data:{plantation_id:plantationId}},
@@ -58,5 +59,9 @@ export const createDemoAccount = (telephone="+2250700000000") => {
       {id:"DEMO-N3",title:"Nouveau message",message:"Votre technicien vous a écrit.",created_at:d(-1),read:false,data:{plantation_id:plantationId}}
     ]
   };
-  return {demo_code:DEMO_ACCESS_CODE,client,plantations:[plantation],paiements:[]};
+  const paiements:any[]=[
+    {id:"DEMO-P1",reference:"DEMO-PI-001",type_paiement:"PI",montant:250000,montant_paye:250000,statut:"valide",mode_paiement:"Mobile Money",plantation_id:plantationId,date_paiement:d(-20),created_at:d(-20)},
+    ...[1,2].map(n=>({id:"DEMO-P"+(n+1),reference:"DEMO-MENS-00"+n,type_paiement:"MENSUALITE",montant:12500,montant_paye:12500,statut:"valide",mode_paiement:"Mobile Money",plantation_id:plantationId,date_paiement:d(-20+n*10),created_at:d(-20+n*10)}))
+  ];
+  return {demo_code:DEMO_ACCESS_CODE,client,plantations:[plantation],paiements};
 };

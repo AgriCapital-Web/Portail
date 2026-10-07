@@ -77,7 +77,8 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
       if (!error && data?.success) {
         if (data.demo) {
           setClientName(data.client?.nom_complet || "Compte DÉMO");
-          setDemoData(data);
+          // Le compte démo est 100% local : jamais chargé depuis la base.
+          setDemoData(createDemoAccount(phone));
           setStep("demo");
         } else {
           setClientName(data.nom_complet || "");

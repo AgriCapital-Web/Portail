@@ -61,7 +61,7 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
   const montantTotal = useMemo(() => {
     if (typePaiement === "pi") return dbInitialDue;
     if (paymentMode === "custom") return Math.max(0, Number(customAmount) || 0);
-    return paymentMode === "custom" ? Math.max(0, Number(customAmount) || 0) : dbMonthlyBase * Number(paymentMode);
+    return dbMonthlyBase * Number(paymentMode);
   }, [typePaiement, paymentMode, customAmount, dbMonthlyBase, dbInitialDue]);
 
   const kkiapayFeeRate = Math.max(0, Number(client?.portal_config?.kkiapay_mobile_money_fee_rate || 0));
@@ -107,15 +107,36 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
   const handleDemoPayment = async () => {
     setLoading(true);
     const reference = "DEMO-" + Date.now() + "-" + Math.random().toString(36).slice(2, 9).toUpperCase();
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    // Simulation 100% locale : aucune écriture en base, uniquement la session du navigateur.
+    try {
+      const stored = JSON.parse(sessionStorage.getItem("agri_paiements") || "[]");
+      const now = new Date().toISOString();
+      const isPi = typePaiement === "pi";
+      const simulated = { id: reference, reference, type_paiement: isPi ? "PI" : "MENSUALITE", montant: montantTotal, montant_paye: montantTotal, statut: "valide", mode_paiement: paymentMethod === "momo" ? "Mobile Money" : "Carte bancaire", plantation_id: plantation?.id, date_paiement: now, created_at: now, simulation: true };
+      sessionStorage.setItem("agri_paiements", JSON.stringify([simulated, ...(Array.isArray(stored) ? stored : [])]));
+      const storedClient = JSON.parse(sessionStorage.getItem("agri_client") || "null");
+      if (storedClient) {
+        const etat = storedClient.paiement_etat || {};
+        const mens = etat.mensualite || {};
+        const pi = etat.paiement_initial || {};
+        const nextEtat = isPi
+          ? { ...etat, paiement_initial: { ...pi, paye: Number(pi.paye || 0) + montantTotal, solde: Math.max(0, Number(pi.solde || 0) - montantTotal) } }
+          : { ...etat, mensualite: { ...mens, montant_arriere: Math.max(0, Number(mens.montant_arriere || 0) - montantTotal), jours_retard: 0, total_simule: Number(mens.total_simule || 0) + montantTotal } };
+        sessionStorage.setItem("agri_client", JSON.stringify({ ...storedClient, paiement_etat: nextEtat }));
+      }
+    } catch { /* session indisponible : simulation sans persistance */ }
     toast({ title: "✅ Paiement simulé", description: "Référence " + reference + ". Aucun débit réel n'a été effectué." });
     setLoading(false);
     setTimeout(onBack, 1000);
   };
 
   const handleSubmit = async () => {
+    if (isDemoAccount) {
+      if (montantTotal <= 0) { toast({ variant: "destructive", title: "Montant requis", description: "Choisissez un montant à simuler." }); return; }
+      return handleDemoPayment();
+    }
     if (typePaiement === "pi" && montantTotal <= 0 && plantation) return handleActivationGratuite();
-    if (isDemoAccount) return handleDemoPayment();
     if (!plantation || montantTotal <= 0) {
       toast({ variant: "destructive", title: "Montant requis", description: "Choisissez un montant réel à payer." });
       return;
@@ -197,7 +218,7 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
                 </div>
               )}
               <div className="rounded-2xl bg-primary/5 border border-primary/15 p-4">
-                <p className="text-xs text-muted-foreground">Mensualité réelle fournie par la DB</p>
+                <p className="text-xs text-muted-foreground">Votre mensualité</p>
                 <p className="text-2xl font-black text-primary">{fmt(dbMonthlyBase)}</p>
                 {dbArrears > 0 && <p className="text-xs text-destructive mt-1"><AlertTriangle className="inline h-3.5 w-3.5 mr-1" />Arriéré réel : {dbLateDays} jour{dbLateDays > 1 ? "s" : ""} · {fmt(dbArrears)}</p>}
               </div>
@@ -226,7 +247,7 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
               <div className="grid grid-cols-2 gap-2 text-xs"><div className="rounded-xl bg-muted/40 p-3"><p className="text-muted-foreground">Débit client</p><p className="font-black text-primary">{fmt(kkiapayPricing.clientDebitAmount)}</p></div><div className="rounded-xl bg-muted/40 p-3"><p className="text-muted-foreground">Frais absorbés</p><p className="font-black">{fmt(kkiapayPricing.absorbedByAgriCapital)}</p></div></div>
             </div>}
 
-            <Button onClick={handleSubmit} disabled={loading || !plantation || (montantTotal <= 0 && !isPiFree)} className="w-full h-13 rounded-xl font-bold">{loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CreditCard className="h-5 w-5 mr-2" />}{isPiFree ? "Activer ma plantation (0 F)" : "Payer maintenant"}</Button>
+            <Button onClick={handleSubmit} disabled={loading || !plantation || (montantTotal <= 0 && !isPiFree)} className="w-full h-13 rounded-xl font-bold">{loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CreditCard className="h-5 w-5 mr-2" />}{isDemoAccount ? "Payer maintenant (simulation)" : isPiFree ? "Activer ma plantation (0 F)" : "Payer maintenant"}</Button>
             <p className="text-[10px] text-center text-muted-foreground">Votre choix indique uniquement le montant que vous souhaitez régler maintenant. Aucun paiement futur ni échéancier n'est créé.</p>
           </CardContent>
         </Card>
