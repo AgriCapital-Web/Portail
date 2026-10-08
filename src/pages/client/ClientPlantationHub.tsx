@@ -47,8 +47,8 @@ const ClientPlantationHub = ({ client, plantations, initialPlantationId, onPlant
   const tabs = baseTabs;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(180deg, #00643C 0%, #004d2e 20%, #f8f7f4 20.1%, #f8f7f4 100%)" }}>
-      <header className="px-4 pt-4 pb-3 sticky top-0 z-50" style={{ background: "linear-gradient(180deg, #00643C 0%, #004d2e 100%)" }}>
+    <div className="min-h-screen flex flex-col bg-[#f8f7f4] text-[#24352D]">
+      <header className="px-4 pt-4 pb-3 sticky top-0 z-50 shadow-[0_2px_14px_rgba(0,0,0,0.12)]" style={{ background: "linear-gradient(180deg, #00643C 0%, #004d2e 100%)" }}>
         <div className="container mx-auto w-full max-w-[1400px]">
           <div className="flex items-center justify-between gap-2 mb-3">
             <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-white/15 h-9 w-9">
@@ -71,11 +71,11 @@ const ClientPlantationHub = ({ client, plantations, initialPlantationId, onPlant
       </header>
 
       <main className="flex-1 container mx-auto px-3 sm:px-4 lg:px-8 w-full max-w-[1400px] py-4 lg:py-6 min-h-[calc(100svh-150px)]">
-        {isPalmTerroir && <div className="mb-4 rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm text-muted-foreground"><strong className="text-primary">PalmTerroir :</strong> après la mise en terre, les travaux réguliers d’entretien et les intrants restent à la charge du client. AgriCapital assure l’encadrement, les recommandations et le suivi technique.</div>}
+        {isPalmTerroir && <div className="mb-4 rounded-2xl border border-[#B9D8C8] bg-white p-4 text-sm leading-relaxed text-[#405149] shadow-sm"><strong className="text-[#00643C]">PalmTerroir :</strong> après la mise en terre, les travaux réguliers d’entretien et les intrants restent à la charge du client. AgriCapital assure l’encadrement, les recommandations et le suivi technique.</div>}
         <Tabs defaultValue="overview" className="w-full min-h-[520px]">
-          <TabsList className="w-full flex overflow-x-auto no-scrollbar h-auto p-1 bg-white/80 backdrop-blur rounded-xl mb-4 justify-start lg:justify-center">
+          <TabsList className="w-full flex overflow-x-auto no-scrollbar h-auto p-1 bg-white border border-[#D9E2DD] shadow-sm backdrop-blur rounded-xl mb-4 justify-start lg:justify-center">
             {tabs.map((t) => (
-              <TabsTrigger key={t.value} value={t.value} className="flex-shrink-0 gap-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-white">
+              <TabsTrigger key={t.value} value={t.value} className="flex-shrink-0 gap-1.5 text-xs text-[#52615A] hover:text-[#24352D] data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm">
                 <t.icon className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t.label}</span>
               </TabsTrigger>
