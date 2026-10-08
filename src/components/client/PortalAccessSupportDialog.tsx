@@ -3,6 +3,7 @@ import { Loader2, MessageCircle, Send } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,10 +13,10 @@ export default function PortalAccessSupportDialog({ open, onOpenChange, initialP
   const { toast } = useToast();
   const [nom, setNom] = useState("");
   const [telephone, setTelephone] = useState(initialPhone);
+  const [telephoneIndicatif, setTelephoneIndicatif] = useState("");
+  const [telephoneLocal, setTelephoneLocal] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
-
-  const formatPhone = (value: string) => value.replace(/\D/g, "").slice(0, 10).replace(/(\d{2})(?=\d)/g, "$1 ").trim();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,10 +57,17 @@ export default function PortalAccessSupportDialog({ open, onOpenChange, initialP
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wider">Nom et prénom</label>
             <Input value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Ex. KOUASSI Jean" className="h-12 rounded-xl" required />
           </div>
-          <div>
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider">Numéro utilisé lors de la contractualisation</label>
-            <Input type="tel" inputMode="numeric" value={formatPhone(telephone)} onChange={(e) => setTelephone(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="07 00 00 00 00" className="h-12 rounded-xl" required />
-          </div>
+          <CountryPhoneInput
+            label="Numéro utilisé lors de la contractualisation"
+            required
+            countryCode={telephoneIndicatif || undefined}
+            localValue={telephoneLocal || telephone}
+            onChange={(value) => {
+              setTelephoneIndicatif(value.callingCode);
+              setTelephoneLocal(value.localValue);
+              setTelephone(value.internationalValue);
+            }}
+          />
           <div>
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wider">Objet</label>
             <Input value="Espace client inaccessible" readOnly className="h-12 rounded-xl bg-[#F5F7F5] font-medium" />
