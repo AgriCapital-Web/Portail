@@ -180,12 +180,12 @@ const ClientDashboard = ({
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-white/60 uppercase tracking-wider">Bonjour,</p>
+                <p className="text-[10px] text-white/80 uppercase tracking-wider">Bonjour,</p>
                 <h2 className="text-base font-bold text-white truncate">{client.nom_complet}</h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <Badge className="text-[10px] px-2 py-0 bg-gold/20 border-gold/30 text-white">{offreNom}</Badge>
                   {isDemo && <Badge className="text-[10px] px-2 py-0 bg-white/10 border-white/20 text-white/80">Démonstration</Badge>}
-                  <span className="text-[10px] text-white/40">{client.id_unique || '—'}</span>
+                  <span className="text-[10px] text-white/70">{client.id_unique || '—'}</span>
                 </div>
               </div>
             </div>
@@ -193,8 +193,8 @@ const ClientDashboard = ({
         </Card>
 
         {customPayment && (
-          <Card className="lg:col-span-7 border-primary/20 bg-primary/5 shadow-sm">
-            <CardContent className="p-4 sm:p-5">
+          <Card className="lg:col-span-7 border-[#CFE0D7] bg-white shadow-sm">
+            <CardContent className="p-4 sm:p-5 text-[#24352D]">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -202,17 +202,17 @@ const ClientDashboard = ({
                     <p className="font-bold">Conditions de règlement personnalisées</p>
                     <Badge variant="outline" className="text-primary border-primary/30">Exception individuelle</Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground max-w-2xl">Cette configuration reste rattachée à l’offre {client.offres?.nom || client.offres?.formule_nom || '—'} sans créer d’offre spéciale.</p>
+                  <p className="text-xs text-[#5F6D65] max-w-2xl">Cette configuration reste rattachée à l’offre {client.offres?.nom || client.offres?.formule_nom || '—'} sans créer d’offre spéciale.</p>
                 </div>
                 <div className="text-left sm:text-right shrink-0">
-                  <p className="text-xs text-muted-foreground">Solde du Paiement initial</p>
+                  <p className="text-xs text-[#5F6D65]">Solde du Paiement initial</p>
                   <p className="text-xl font-extrabold">{fmt(customInitialBalance)}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4 text-sm">
-                <div className="rounded-xl bg-background/70 border p-3"><p className="text-xs text-muted-foreground">Paiement initial déjà versé</p><p className="font-bold">{fmt(Number(customPayment.paiement_initial?.montant_verse || 0))}</p></div>
-                <div className="rounded-xl bg-background/70 border p-3"><p className="text-xs text-muted-foreground">Mensualité</p><p className="font-bold">{customMonthly ? fmt(Number(customMonthly.montant || 0)) + ' × ' + customMonthly.nombre : 'Aucune'}</p></div>
-                <div className="rounded-xl bg-background/70 border p-3"><p className="text-xs text-muted-foreground">Début mensualités</p><p className="font-bold">{customMonthly?.date_debut ? format(new Date(customMonthly.date_debut), 'dd/MM/yyyy') : '—'}</p></div>
+                <div className="rounded-xl bg-[#F7F9F8] border border-[#E0E7E3] p-3"><p className="text-xs text-[#5F6D65]">Paiement initial déjà versé</p><p className="font-bold">{fmt(Number(customPayment.paiement_initial?.montant_verse || 0))}</p></div>
+                <div className="rounded-xl bg-background/70 border p-3"><p className="text-xs text-[#5F6D65]">Mensualité</p><p className="font-bold">{customMonthly ? fmt(Number(customMonthly.montant || 0)) + ' × ' + customMonthly.nombre : 'Aucune'}</p></div>
+                <div className="rounded-xl bg-background/70 border p-3"><p className="text-xs text-[#5F6D65]">Début mensualités</p><p className="font-bold">{customMonthly?.date_debut ? format(new Date(customMonthly.date_debut), 'dd/MM/yyyy') : '—'}</p></div>
               </div>
               {financialClient && customInitialBalance > 0 && (
                 <Button className="mt-4" size="sm" onClick={() => handlePayment({ prefillAmount: customInitialBalance, prefillType: 'solde_paiement_initial' })}>Payer le solde du Paiement initial — {fmt(customInitialBalance)}</Button>
@@ -232,7 +232,7 @@ const ClientDashboard = ({
               <CardContent className="p-3 text-center">
                 <stat.icon className={`h-5 w-5 mx-auto mb-1 ${stat.color}`} />
                 <p className="text-xl font-bold text-white">{stat.value}</p>
-                <p className="text-[10px] text-white/60">{stat.label}</p>
+                <p className="text-[10px] text-white/85">{stat.label}</p>
               </CardContent>
             </Card>
           ))}
