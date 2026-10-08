@@ -55,11 +55,11 @@ export const MapTab = ({ plantation }: { plantation: any }) => {
               <MapViewportFix />
               <CircleMarker
                 center={[lat, lng]}
-                radius={10}
+                radius={15}
                 pathOptions={{
                   color: "#ffffff",
                   weight: 3,
-                  fillColor: "#00643C",
+                  fillColor: "#DC2626",
                   fillOpacity: 0.95,
                 }}
               >
