@@ -23,9 +23,9 @@ export const OverviewTab = ({ plantation, client }: { plantation: any; client: a
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Client</p>
+              <p className="text-[10px] uppercase tracking-wider text-[#5F6D65] font-medium">Client</p>
               <h2 className="font-bold truncate">{client?.nom_complet}</h2>
-              <p className="text-xs text-muted-foreground">{client?.numero_contrat || client?.id_unique}</p>
+              <p className="text-xs text-[#5F6D65]">{client?.numero_contrat || client?.id_unique}</p>
             </div>
             <StatusBadge statut={plantation?.statut_global} />
           </div>
@@ -34,7 +34,7 @@ export const OverviewTab = ({ plantation, client }: { plantation: any; client: a
               <div key={i} className="bg-muted/40 rounded-xl p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <it.icon className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-[10px] text-muted-foreground uppercase">{it.label}</span>
+                  <span className="text-[10px] text-[#5F6D65] uppercase font-medium">{it.label}</span>
                 </div>
                 <p className="text-sm font-bold truncate">{it.value}</p>
               </div>
