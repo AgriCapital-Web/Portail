@@ -56,7 +56,6 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
 
   const handlePhoneContinue = async () => {
     const phone = cleanPhone();
-    const phone = cleanPhone();
     if (!phone || !isValidPhoneNumber(phone)) {
       toast({ variant: "destructive", title: "Numéro invalide", description: "Veuillez sélectionner le pays puis saisir un numéro de téléphone valide." });
       return;
