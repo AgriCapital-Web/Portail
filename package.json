@@ -70,7 +70,8 @@
     "terser": "^5.44.1",
     "vaul": "^0.9.9",
     "zod": "^3.25.76",
-    "react-is": "^18.3.1"
+    "react-is": "^18.3.1",
+    "react-phone-number-input": "^3.4.12"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
