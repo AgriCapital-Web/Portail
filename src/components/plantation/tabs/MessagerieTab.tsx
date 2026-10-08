@@ -192,7 +192,6 @@ if (!token) return;
 
         <div className="space-y-2">
           <Textarea
-            uppercase={false}
             value={draft}
             maxLength={4000}
             rows={3}

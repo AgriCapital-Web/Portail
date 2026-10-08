@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useKkiapay } from "@/hooks/useKkiapay";
 import logoWhiteBg from "@/assets/logo-white-bg.png";
 import { formatCFA } from "@/utils/pricing";
+import { isLocalDemo } from "@/utils/portalRoles";
 import { trackEvent } from "@/utils/errorTracker";
 import { ArrowLeft, CreditCard, MapPin, AlertTriangle, Loader2, Phone, Leaf } from "lucide-react";
 
@@ -45,7 +46,7 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
   const dbLateDays = Math.max(0, Number(dbFinancialState?.mensualite?.jours_retard || 0));
   const hasArrears = dbArrears > 0 || dbLateDays > 0;
   const activeHectares = Math.max(0, Number(dbFinancialState?.mensualite?.hectares_actifs || 0));
-  const isDemoAccount = client?.demo === true || client?._demo === true || sessionStorage.getItem("agri_demo") === "1";
+  const isDemoAccount = isLocalDemo(client);
 
   useEffect(() => {
     if (selectedPlantation || plantations.length === 0) return;
@@ -61,7 +62,7 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
   const montantTotal = useMemo(() => {
     if (typePaiement === "pi") return dbInitialDue;
     if (paymentMode === "custom") return Math.max(0, Number(customAmount) || 0);
-    return paymentMode === "custom" ? Math.max(0, Number(customAmount) || 0) : dbMonthlyBase * Number(paymentMode);
+    return dbMonthlyBase * Number(paymentMode);
   }, [typePaiement, paymentMode, customAmount, dbMonthlyBase, dbInitialDue]);
 
   const kkiapayFeeRate = Math.max(0, Number(client?.portal_config?.kkiapay_mobile_money_fee_rate || 0));
@@ -108,14 +109,21 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
     setLoading(true);
     const reference = "DEMO-" + Date.now() + "-" + Math.random().toString(36).slice(2, 9).toUpperCase();
     await new Promise((resolve) => setTimeout(resolve, 700));
+    const payment = { id: reference, reference, montant: montantTotal, montant_paye: montantTotal, statut: "valide", type_paiement: typePaiement === "pi" ? "PI" : "MENSUALITE", created_at: new Date().toISOString(), date_paiement: new Date().toISOString(), plantation_id: plantation?.id };
+    let previous: any[] = [];
+    try { previous = JSON.parse(sessionStorage.getItem("agri_paiements") || "[]"); } catch { previous = []; }
+    sessionStorage.setItem("agri_paiements", JSON.stringify([...previous, payment]));
     toast({ title: "✅ Paiement simulé", description: "Référence " + reference + ". Aucun débit réel n'a été effectué." });
     setLoading(false);
     setTimeout(onBack, 1000);
   };
 
   const handleSubmit = async () => {
+    if (isDemoAccount) {
+      if (montantTotal > 0 && plantation) return handleDemoPayment();
+      return;
+    }
     if (typePaiement === "pi" && montantTotal <= 0 && plantation) return handleActivationGratuite();
-    if (isDemoAccount) return handleDemoPayment();
     if (!plantation || montantTotal <= 0) {
       toast({ variant: "destructive", title: "Montant requis", description: "Choisissez un montant réel à payer." });
       return;
@@ -163,77 +171,77 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
     <div className="min-h-screen flex flex-col bg-background">
       <header className="py-3 px-4 shadow-lg sticky top-0 z-50 bg-[image:var(--gradient-hero)]">
         <div className="container mx-auto flex items-center gap-3 w-full max-w-7xl">
-          <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-white/15 h-9 w-9"><ArrowLeft className="h-5 w-5" /></Button>
-          <div className="bg-white rounded-lg p-1 flex items-center justify-center"><img src={logoWhiteBg} alt="AgriCapital" className="h-9 sm:h-10 object-contain" /></div>
-          <span className="font-semibold text-white text-sm">Paiement</span>
+          <Button variant="ghost" size="icon" onClick={onBack} className="text-primary-foreground hover:bg-card/15 h-9 w-9"><ArrowLeft className="h-5 w-5" /></Button>
+          <div className="bg-card rounded-lg p-1 flex items-center justify-center"><img src={logoWhiteBg} alt="AgriCapital" className="h-9 sm:h-10 object-contain" /></div>
+          <span className="font-semibold text-primary-foreground text-sm">Paiement</span>
         </div>
       </header>
 
-      <main className="client-page-content flex-1 container mx-auto py-4 lg:py-8 space-y-4 max-w-lg lg:max-w-7xl">
-        {client?.offres && <Card className="rounded-2xl shadow-md border-2" style={{ borderColor: client.offres.couleur || "#00643C" }}><CardContent className="p-3 flex items-center gap-3"><div className="h-10 w-10 rounded-xl flex items-center justify-center text-white shrink-0" style={{ background: client.offres.couleur || "#00643C" }}><Leaf className="h-5 w-5" /></div><div><p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Votre offre</p><p className="font-bold text-sm">{client.offres.nom}</p></div></CardContent></Card>}
+      <main className="client-page-content flex-1 container mx-auto py-4 lg:py-8 space-y-4 w-full max-w-5xl">
+        {client?.offres && <Card className="rounded-lg shadow-md border-2" style={{ borderColor: client.offres.couleur || "#00643C" }}><CardContent className="p-3 flex items-center gap-3"><div className="h-10 w-10 rounded-lg flex items-center justify-center text-primary-foreground shrink-0" style={{ background: client.offres.couleur || "#00643C" }}><Leaf className="h-5 w-5" /></div><div><p className="text-sm uppercase tracking-wide text-muted-foreground font-semibold">Votre offre</p><p className="font-bold text-sm">{client.offres.nom}</p></div></CardContent></Card>}
 
-        <Card className="card-brand rounded-2xl shadow-md">
+        <Card className="card-brand rounded-lg shadow-md">
           <CardContent className="p-5 space-y-4">
             <div className="flex items-center gap-2"><CreditCard className="h-5 w-5 text-primary" /><h3 className="text-base font-bold">Choisissez ce que vous souhaitez payer</h3></div>
             <div className="grid grid-cols-2 gap-2">
-              <Button type="button" variant={typePaiement === "mensualite" ? "default" : "outline"} onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-xl">Mensualités</Button>
-              {dbInitialDue > 0 && <Button type="button" variant={typePaiement === "pi" ? "default" : "outline"} onClick={() => setTypePaiement("pi")} className="h-11 rounded-xl">Paiement initial</Button>}
+              <Button type="button" variant={typePaiement === "mensualite" ? "default" : "outline"} onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>
+              {dbInitialDue > 0 && <Button type="button" variant={typePaiement === "pi" ? "default" : "outline"} onClick={() => setTypePaiement("pi")} className="h-11 rounded-lg">Paiement initial</Button>}
             </div>
 
             {typePaiement === "mensualite" && <>
               {hasArrears && (
-                <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-3">
                   <div>
                     <p className="text-sm font-black text-destructive">Vous avez un arriéré</p>
-                    <p className="text-xs text-muted-foreground">Vous pouvez le rattraper maintenant, sans créer de nouvelle échéance.</p>
+                    <p className="text-sm text-muted-foreground">Vous pouvez le rattraper maintenant, sans créer de nouvelle échéance.</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded-xl bg-background p-3"><p className="text-muted-foreground">Arriéré réel</p><p className="font-black">{fmt(dbArrears)}</p></div>
-                    <div className="rounded-xl bg-background p-3"><p className="text-muted-foreground">Retard réel</p><p className="font-black">{dbLateDays} j</p></div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="rounded-lg bg-background p-3"><p className="text-muted-foreground">Arriéré réel</p><p className="font-black">{fmt(dbArrears)}</p></div>
+                    <div className="rounded-lg bg-background p-3"><p className="text-muted-foreground">Retard réel</p><p className="font-black">{dbLateDays} j</p></div>
                   </div>
-                  <Button type="button" variant="destructive" className="w-full rounded-xl" onClick={() => { setPaymentMode("custom"); setCustomAmount(String(Math.round(dbArrears))); }}>
+                  <Button type="button" variant="destructive" className="w-full rounded-lg" onClick={() => { setPaymentMode("custom"); setCustomAmount(String(Math.round(dbArrears))); }}>
                     Rattraper {fmt(dbArrears)}
                   </Button>
                 </div>
               )}
-              <div className="rounded-2xl bg-primary/5 border border-primary/15 p-4">
-                <p className="text-xs text-muted-foreground">Mensualité réelle fournie par la DB</p>
+              <div className="rounded-lg bg-primary/5 border border-primary/15 p-4">
+                <p className="text-sm text-muted-foreground">Mensualité</p>
                 <p className="text-2xl font-black text-primary">{fmt(dbMonthlyBase)}</p>
-                {dbArrears > 0 && <p className="text-xs text-destructive mt-1"><AlertTriangle className="inline h-3.5 w-3.5 mr-1" />Arriéré réel : {dbLateDays} jour{dbLateDays > 1 ? "s" : ""} · {fmt(dbArrears)}</p>}
+                {dbArrears > 0 && <p className="text-sm text-destructive mt-1"><AlertTriangle className="inline h-3.5 w-3.5 mr-1" />Arriéré réel : {dbLateDays} jour{dbLateDays > 1 ? "s" : ""} · {fmt(dbArrears)}</p>}
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {choices.map((choice) => <button key={choice.value} type="button" onClick={() => setPaymentMode(choice.value)} className={"rounded-xl border-2 p-3 text-left text-xs font-bold transition-all " + (paymentMode === choice.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/40")}>{choice.label}</button>)}
+                {choices.map((choice) => <Button variant="outline" key={choice.value} type="button" onClick={() => setPaymentMode(choice.value)} className={"rounded-lg border-2 p-3 text-left text-sm font-bold transition-all " + (paymentMode === choice.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/40")}>{choice.label}</Button>)}
               </div>
 
-              {paymentMode === "custom" && <div className="space-y-2"><Label>Montant à payer maintenant</Label><Input type="number" min="1" step="1" value={customAmount} onChange={(e) => setCustomAmount(e.target.value)} placeholder="Ex. 25000" /><p className="text-[11px] text-muted-foreground">Ce montant est payé maintenant. Aucun paiement futur n'est créé.</p></div>}
+              {paymentMode === "custom" && <div className="space-y-2"><Label>Montant à payer maintenant</Label><Input type="number" min="1" step="1" value={customAmount} onChange={(e) => setCustomAmount(e.target.value)} placeholder="Ex. 25000" /><p className="text-sm text-muted-foreground">Ce montant est payé maintenant. Aucun paiement futur n'est créé.</p></div>}
 
-              <div className="rounded-2xl bg-muted/30 p-4 space-y-2">
+              <div className="rounded-lg bg-muted/30 p-4 space-y-2">
                 <div className="flex justify-between text-sm"><span>Montant à payer maintenant</span><strong className="text-primary">{fmt(montantTotal)}</strong></div>
-                <p className="text-[10px] text-muted-foreground">Le montant provient de l’état financier réel fourni par la base. La validation finale reste calculée côté serveur.</p>
+                <p className="text-sm text-muted-foreground"></p>
               </div>
             </>}
 
-            {typePaiement === "pi" && plantation && <div className="rounded-2xl bg-muted/30 p-4 space-y-2 text-sm"><div className="flex justify-between"><span>Plantation</span><strong>{plantation.nom_plantation || plantation.id_unique}</strong></div><div className="flex justify-between"><span>Surface</span><strong>{plantation.superficie_ha} ha</strong></div><div className="flex justify-between"><span>Solde Paiement initial réel</span><strong className="text-primary">{fmt(dbInitialDue)}</strong></div></div>}
+            {typePaiement === "pi" && plantation && <div className="rounded-lg bg-muted/30 p-4 space-y-2 text-sm"><div className="flex justify-between"><span>Plantation</span><strong>{plantation.nom_plantation || plantation.id_unique}</strong></div><div className="flex justify-between"><span>Surface</span><strong>{plantation.superficie_ha} ha</strong></div><div className="flex justify-between"><span>Solde Paiement initial réel</span><strong className="text-primary">{fmt(dbInitialDue)}</strong></div></div>}
 
-            {typePaiement === "mensualite" && plantation && <div className="rounded-2xl border p-4"><div className="flex items-center gap-2 text-sm font-bold"><MapPin className="h-4 w-4 text-primary" />{plantation.nom_plantation || plantation.id_unique}</div><p className="text-xs text-muted-foreground mt-1">{plantation.superficie_activee || 0} ha actifs</p></div>}
+            {typePaiement === "mensualite" && plantation && <div className="rounded-lg border p-4"><div className="flex items-center gap-2 text-sm font-bold"><MapPin className="h-4 w-4 text-primary" />{plantation.nom_plantation || plantation.id_unique}</div><p className="text-sm text-muted-foreground mt-1">{plantation.superficie_activee || 0} ha actifs</p></div>}
 
-            {!isPiFree && <div className="rounded-2xl border p-4 space-y-3">
+            {!isPiFree && <div className="rounded-lg border p-4 space-y-3">
               <div className="flex justify-between items-center"><p className="text-sm font-bold">Mode de paiement</p><Badge variant="outline">Frais absorbés</Badge></div>
               <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setPaymentMethod("momo")} className={"rounded-xl border-2 p-3 text-left " + (paymentMethod === "momo" ? "border-primary bg-primary/5" : "border-border")}><p className="text-xs font-black">Mobile Money</p></button>
-                <button type="button" onClick={() => setPaymentMethod("card")} className={"rounded-xl border-2 p-3 text-left " + (paymentMethod === "card" ? "border-primary bg-primary/5" : "border-border")}><p className="text-xs font-black">Carte bancaire</p></button>
+                <Button variant="outline" type="button" onClick={() => setPaymentMethod("momo")} className={"rounded-lg border-2 p-3 text-left " + (paymentMethod === "momo" ? "border-primary bg-primary/5" : "border-border")}><p className="text-sm font-black">Mobile Money</p></Button>
+                <Button variant="outline" type="button" onClick={() => setPaymentMethod("card")} className={"rounded-lg border-2 p-3 text-left " + (paymentMethod === "card" ? "border-primary bg-primary/5" : "border-border")}><p className="text-sm font-black">Carte bancaire</p></Button>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs"><div className="rounded-xl bg-muted/40 p-3"><p className="text-muted-foreground">Débit client</p><p className="font-black text-primary">{fmt(kkiapayPricing.clientDebitAmount)}</p></div><div className="rounded-xl bg-muted/40 p-3"><p className="text-muted-foreground">Frais absorbés</p><p className="font-black">{fmt(kkiapayPricing.absorbedByAgriCapital)}</p></div></div>
+              <div className="grid grid-cols-2 gap-2 text-sm"><div className="rounded-lg bg-muted/40 p-3"><p className="text-muted-foreground">Débit client</p><p className="font-black text-primary">{fmt(kkiapayPricing.clientDebitAmount)}</p></div><div className="rounded-lg bg-muted/40 p-3"><p className="text-muted-foreground">Frais absorbés</p><p className="font-black">{fmt(kkiapayPricing.absorbedByAgriCapital)}</p></div></div>
             </div>}
 
-            <Button onClick={handleSubmit} disabled={loading || !plantation || (montantTotal <= 0 && !isPiFree)} className="w-full h-13 rounded-xl font-bold">{loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CreditCard className="h-5 w-5 mr-2" />}{isPiFree ? "Activer ma plantation (0 F)" : "Payer maintenant"}</Button>
-            <p className="text-[10px] text-center text-muted-foreground">Votre choix indique uniquement le montant que vous souhaitez régler maintenant. Aucun paiement futur ni échéancier n'est créé.</p>
+            <Button onClick={handleSubmit} disabled={loading || !plantation || (montantTotal <= 0 && !isPiFree)} className="w-full h-14 rounded-lg font-bold">{loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CreditCard className="h-5 w-5 mr-2" />}{isPiFree ? "Activer ma plantation (0 F)" : (isDemoAccount ? "Payer maintenant (simulation)" : "Payer maintenant")}</Button>
+            <p className="text-sm text-center text-muted-foreground">Votre choix indique uniquement le montant que vous souhaitez régler maintenant. Aucun paiement futur ni échéancier n'est créé.</p>
           </CardContent>
         </Card>
 
-        {client?.portal_config?.contact_telephone && <Card className="rounded-2xl"><CardContent className="p-3 text-center"><a href={`tel:${client.portal_config.contact_telephone}`} className="inline-flex items-center gap-2 text-primary font-bold text-sm"><Phone className="h-4 w-4" />{client.portal_config.contact_telephone}</a></CardContent></Card>}
+        {client?.portal_config?.contact_telephone && <Card className="rounded-lg"><CardContent className="p-3 text-center"><a href={`tel:${client.portal_config.contact_telephone}`} className="inline-flex items-center gap-2 text-primary font-bold text-sm"><Phone className="h-4 w-4" />{client.portal_config.contact_telephone}</a></CardContent></Card>}
       </main>
-      <footer className="border-t bg-card py-3"><p className="text-xs text-muted-foreground text-center">© {new Date().getFullYear()} AgriCapital</p></footer>
+      <footer className="border-t bg-card py-3"><p className="text-sm text-muted-foreground text-center">© {new Date().getFullYear()} AgriCapital</p></footer>
     </div>
   );
 };

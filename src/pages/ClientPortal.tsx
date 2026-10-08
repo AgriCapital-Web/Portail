@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ClientHome from "./client/ClientHome";
+import { createDemoAccount } from "@/data/demoAccount";
+import { canShowPayments, isLocalDemo } from "@/utils/portalRoles";
 const ClientDashboard = lazy(() => import("./client/ClientDashboard"));
 const ClientPayment = lazy(() => import("./client/ClientPayment"));
 const PaymentReturn = lazy(() => import("./client/PaymentReturn"));
@@ -80,7 +82,7 @@ const ClientPortal = () => {
         return;
       }
 
-      const isDemoSession = sessionStorage.getItem("agri_demo") === "1" || storedClient?.demo === true;
+      const isDemoSession = isLocalDemo(storedClient);
 
       if (!token && !storedClient) {
         if (!cancelled) {
@@ -96,6 +98,12 @@ const ClientPortal = () => {
       if (isHome && storedClient) navigate("/dashboard", { replace: true });
 
       if (isDemoSession) {
+        const fresh = createDemoAccount(storedClient.telephone);
+        const nextClient = { ...storedClient, ...fresh.client };
+        setClient(nextClient);
+        setPlantations(fresh.plantations);
+        sessionStorage.setItem("agri_client", JSON.stringify(nextClient));
+        sessionStorage.setItem("agri_plantations", JSON.stringify(fresh.plantations));
         if (!cancelled) setRestoring(false);
         return;
       }
@@ -145,7 +153,7 @@ const ClientPortal = () => {
 
   useEffect(() => {
     if (!client || isPaymentReturn || privateView === "dashboard" || privateView === "plantation-hub") return;
-    if (client.portal_primary_role !== "client") navigate("/dashboard", { replace: true });
+    if (!canShowPayments(client)) navigate("/dashboard", { replace: true });
   }, [client, isPaymentReturn, privateView, navigate]);
 
   useEffect(() => {
@@ -213,7 +221,7 @@ const ClientPortal = () => {
   };
 
   const goPayment = () => {
-    if (client?.demo === true || sessionStorage.getItem("agri_demo") === "1") return;
+    if (!canShowPayments(client)) return;
     navigate("/paiements");
   };
 
@@ -244,7 +252,7 @@ const ClientPortal = () => {
         <StakeholderDashboard
           client={client}
           plantations={plantations}
-          onPlantationHub={() => navigate("/plantations")}
+          onPlantationHub={(id?: string) => navigate(id ? "/plantations/" + encodeURIComponent(id) : "/plantations")}
           onLogout={handleLogout}
         />
       );
@@ -269,18 +277,18 @@ const ClientPortal = () => {
         syncStatus={status}
         lastSync={lastSync}
         onPayment={() => goPayment()}
-        onPlantationHub={() => navigate("/plantations")}
+        onPlantationHub={(id?: string) => navigate(id ? "/plantations/" + encodeURIComponent(id) : "/plantations")}
         onLogout={handleLogout}
       />
     );
   };
 
   if (restoring && !isPaymentReturn && !client && !isHome) {
-    return <div className="min-h-screen bg-[#F7FAF8] flex items-center justify-center text-[#00643C]">Chargement de votre espace…</div>;
+    return <div className="min-h-screen bg-background flex items-center justify-center text-primary">Chargement de votre espace…</div>;
   }
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#F7FAF8] flex items-center justify-center text-[#00643C]">Chargement de votre espace…</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-primary">Chargement de votre espace…</div>}>
       <>
         <InstallPrompt />
         {renderView()}
