@@ -70,8 +70,8 @@ if(!token) return;
   return (
     <div className="relative">
       <Button variant={compact?"ghost":"outline"} size={compact?"icon":"sm"} onClick={()=>setOpen(v=>!v)} className={compact?"text-white hover:bg-white/15":"gap-2"}>
-        <Bell className="h-4 w-4"/>{!compact&&"Notifications"}
-        {unread>0&&<Badge className={compact?"absolute -right-1 -top-1 h-5 min-w-5 px-1 text-[9px]":"ml-1"}>{unread}</Badge>}
+        <Bell className={`h-4 w-4 ${unread>0?"text-red-500":""}`}/>{!compact&&"Notifications"}
+        {unread>0&&<Badge className={compact?"absolute -right-1 -top-1 h-5 min-w-5 px-1 text-[9px] rounded-full bg-red-600 text-white hover:bg-red-600 border border-white/80":"ml-1 rounded-full bg-red-600 text-white hover:bg-red-600"}>{unread}</Badge>}
       </Button>
       {open&&(
         <div className="absolute right-0 top-full z-[80] mt-2 w-[min(92vw,380px)] rounded-2xl border bg-white shadow-2xl">
