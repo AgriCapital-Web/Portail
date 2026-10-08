@@ -16,36 +16,36 @@ export const RapportsTab = ({ plantation }: { plantation: any }) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
         {rapports.map((r, i) => {
           const medias = Array.isArray(r?.medias) ? r.medias : [];
           return (
-            <Card key={r?.id || i} className="rounded-2xl overflow-hidden border bg-card shadow-sm">
-              <CardContent className="p-4 space-y-3">
+            <Card key={r?.id || i} className="rounded-2xl overflow-hidden border border-[#DDE5E0] bg-card shadow-sm h-full">
+              <CardContent className="p-3 sm:p-4 space-y-3 h-full flex flex-col">
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
-                    <FileBarChart2 className="h-5 w-5 text-gold-dark" />
+                  <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
+                    <FileBarChart2 className="h-4 w-4 sm:h-5 sm:w-5 text-gold-dark" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold">{r?.titre || "Rapport terrain"}</p>
+                    <p className="text-xs sm:text-sm font-semibold text-[#26362E]">{r?.titre || "Rapport terrain"}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-[9px]">Validé</Badge>
-                      {r?.date_visite && <span className="text-[10px] text-muted-foreground">{new Date(r.date_visite).toLocaleDateString("fr-FR")}</span>}
+                      {r?.date_visite && <span className="text-[10px] text-[#5F6D65]">{new Date(r.date_visite).toLocaleDateString("fr-FR")}</span>}
                     </div>
                   </div>
                 </div>
 
                 {r?.etat_plantation && (
-                  <div className="rounded-xl bg-muted/40 p-3">
-                    <p className="text-[10px] uppercase text-muted-foreground mb-1">État de la plantation</p>
-                    <p className="text-sm font-medium">{r.etat_plantation}</p>
+                  <div className="rounded-xl bg-[#F5F7F6] border border-[#E2E9E5] p-3">
+                    <p className="text-[10px] uppercase text-[#5F6D65] font-medium mb-1">État de la plantation</p>
+                    <p className="text-sm font-medium text-[#26362E]">{r.etat_plantation}</p>
                   </div>
                 )}
 
                 {r?.contenu && (
                   <div>
                     <p className="text-[10px] uppercase text-muted-foreground mb-1">Message de l'équipe technique</p>
-                    <p className="text-sm leading-relaxed">{r.contenu}</p>
+                    <p className="text-sm leading-relaxed text-[#35463E]">{r.contenu}</p>
                   </div>
                 )}
 
@@ -82,7 +82,7 @@ export const RapportsTab = ({ plantation }: { plantation: any }) => {
                 )}
 
                 {r?.prochaine_intervention && (
-                  <p className="text-xs text-muted-foreground">Prochaine intervention prévue : {new Date(r.prochaine_intervention).toLocaleDateString("fr-FR")}</p>
+                  <p className="text-xs text-[#5F6D65] mt-auto">Prochaine intervention prévue : {new Date(r.prochaine_intervention).toLocaleDateString("fr-FR")}</p>
                 )}
               </CardContent>
             </Card>
