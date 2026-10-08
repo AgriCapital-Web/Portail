@@ -50,6 +50,16 @@ const ClientDashboard = ({
   const [plantations, setPlantations] = useState(initialPlantations);
   const [paiements, setPaiements] = useState(initialPaiements);
   const [refreshing, setRefreshing] = useState(false);
+  const [progressionReferences, setProgressionReferences] = useState<any[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await (supabase as any).from("referentiels_systeme").select("code,ordre").eq("categorie", "etape_plantation").eq("actif", true).order("ordre");
+      if (active) setProgressionReferences(data || []);
+    })();
+    return () => { active = false; };
+  }, []);
   const [showAccessSaved, setShowAccessSaved] = useState(false);
 
   useEffect(() => {
@@ -265,27 +275,42 @@ const ClientDashboard = ({
           ) : null;
         })()}
 
-        {client?.technique_progression?.length > 0 && (
-          <Card className="rounded-2xl shadow-sm lg:col-span-12">
-            <CardContent className="p-5 space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <div><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Suivi technique</p><p className="font-bold text-lg">Progression réelle du dossier</p></div>
-                <Badge variant="outline">{client.technique_progression.filter((e:any) => e.statut === "termine").length}/{client.technique_progression.length} étapes terminées</Badge>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
-                {client.technique_progression.map((e:any) => (
-                  <div key={e.key} className="rounded-xl border bg-muted/20 p-3">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className={e.statut === "termine" ? "h-4 w-4 text-primary" : "h-4 w-4 text-muted-foreground"} />
-                      <p className="text-xs font-semibold">{e.label}</p>
-                    </div>
-                    {e.date && <p className="mt-1 text-[10px] text-muted-foreground">{format(new Date(e.date), "dd/MM/yyyy", { locale: fr })}</p>}
+        {client?.technique_progression?.length > 0 && (() => {
+          const order = new Map(progressionReferences.map((r:any) => [r.code, Number(r.ordre)]));
+          const progression = [...client.technique_progression].sort((a:any, b:any) => {
+            const ao = order.get(a.key ?? a.code ?? a.type);
+            const bo = order.get(b.key ?? b.code ?? b.type);
+            if (ao != null && bo != null) return ao - bo;
+            if (ao != null) return -1;
+            if (bo != null) return 1;
+            return 0;
+          });
+          const completed = progression.filter((e:any) => e.statut === "termine").length;
+          return (
+            <Card className="rounded-2xl shadow-sm lg:col-span-12 border-[#DDE5E0]">
+              <CardContent className="p-3 sm:p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-[#5F6D65] font-medium">Suivi technique</p>
+                    <p className="font-bold text-base sm:text-lg text-[#24352D]">Progression réelle de votre plantation</p>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                  <Badge variant="outline" className="shrink-0 text-[10px]">{completed}/{progression.length} terminées</Badge>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2">
+                  {progression.map((e:any) => (
+                    <div key={e.key ?? e.code} className="min-w-0 rounded-lg border border-[#E0E7E3] bg-[#F8FAF9] p-2 sm:p-2.5">
+                      <div className="flex items-start gap-1.5">
+                        <CheckCircle className={e.statut === "termine" ? "h-3.5 w-3.5 shrink-0 text-primary" : "h-3.5 w-3.5 shrink-0 text-[#78857E]"} />
+                        <p className="min-w-0 text-[10px] sm:text-xs font-semibold leading-tight text-[#35463E]">{e.label}</p>
+                      </div>
+                      {e.date && <p className="mt-1 text-[9px] text-[#68766E]">{format(new Date(e.date), "dd/MM/yyyy", { locale: fr })}</p>}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
         {/* CTA Ma Plantation (nouveau hub complet) */}
         {plantations.length > 0 && (
           <Button onClick={onPlantationHub} className="w-full h-14 lg:h-16 text-base font-bold gap-3 shadow-xl rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white lg:col-span-6">
