@@ -8,6 +8,8 @@ import { Loader2, ArrowRight, MessageCircle, ShieldCheck, KeyRound, ArrowLeft, L
 import { Helmet } from "react-helmet-async";
 import PortalAccessSupportDialog from "@/components/client/PortalAccessSupportDialog";
 import { createDemoAccount, DEMO_ACCESS_CODE } from "@/data/demoAccount";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 interface ClientHomeProps {
   onLogin: (client: any, plantations: any[], paiements: any[]) => void;
@@ -16,8 +18,7 @@ type Step = "phone" | "setup" | "login" | "demo";
 
 const ClientHome = ({ onLogin }: ClientHomeProps) => {
   const { toast } = useToast();
-  const [telephone, setTelephone] = useState("");
-  const [telephoneIndicatif, setTelephoneIndicatif] = useState("+225");
+  const [telephone, setTelephone] = useState<string | undefined>("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<Step>("phone");
   const [accessCode, setAccessCode] = useState("");
@@ -28,17 +29,8 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
 
   useEffect(() => { document.title = "Portail Client | AgriCapital"; }, []);
 
-  const cleanPhone = () => telephoneIndicatif.replace(/[^+\d]/g, "") + telephone.replace(/\D/g, "");
-  const formatPhoneDisplay = (value: string) =>
-    value.replace(/\D/g, "").slice(0, 10).replace(/(\d{2})(?=\d)/g, "$1 ").trim();
+  const cleanPhone = () => telephone?.replace(/[^+\d]/g, "") || "";
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setTelephone(e.target.value.replace(/\D/g, "").slice(0, 10));
-
-  const handleIndicatifChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^+\d]/g, "").replace(/(?!^)\+/g, "").slice(0, 5);
-    setTelephoneIndicatif(value || "+225");
-  };
 
   const saveSession = (data: any, token?: string, demo = false) => {
     const client = data.client;
@@ -64,8 +56,9 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
 
   const handlePhoneContinue = async () => {
     const phone = cleanPhone();
-    if (telephone.replace(/\D/g, "").length < 10) {
-      toast({ variant: "destructive", title: "Numéro incomplet", description: "Veuillez saisir les 10 chiffres du numéro ivoirien." });
+    const phone = cleanPhone();
+    if (!phone || !isValidPhoneNumber(phone)) {
+      toast({ variant: "destructive", title: "Numéro invalide", description: "Veuillez sélectionner le pays puis saisir un numéro de téléphone valide." });
       return;
     }
     setLoading(true);
@@ -156,7 +149,6 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
     setClientName("");
     setDemoData(null);
     setTelephone("");
-    setTelephoneIndicatif("+225");
   };
 
   const codeInput = (value: string, setter: (v: string) => void) => (
@@ -235,20 +227,17 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                   <div className="space-y-5">
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-[#24352D]">Numéro de téléphone</label>
-                      <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-2">
-                        <Input type="tel" inputMode="tel" autoComplete="tel-country-code" value={telephoneIndicatif} onChange={handleIndicatifChange} aria-label="Indicatif international" placeholder="+225" className="h-14 rounded-xl text-center text-lg font-semibold" />
-                        <Input
-                          type="tel"
-                          inputMode="numeric"
-                          autoComplete="tel-national"
-                          value={formatPhoneDisplay(telephone)}
-                          onChange={handlePhoneChange}
-                          onKeyDown={(e) => { if (e.key === "Enter") void handlePhoneContinue(); }}
-                          placeholder="07 00 00 00 00"
-                          className="h-14 w-full rounded-xl text-lg"
-                        />
-                      </div>
-                      <p className="mt-2 text-[11px] text-[#78847E]">L’indicatif est conservé pour la saisie et la recherche ; le CRM conserve le numéro local.</p>
+                      <PhoneInput
+                        international
+                        defaultCountry="CI"
+                        countryCallingCodeEditable={false}
+                        value={telephone}
+                        onChange={setTelephone}
+                        onKeyDown={(e) => { if (e.key === "Enter") void handlePhoneContinue(); }}
+                        aria-label="Numéro de téléphone international"
+                        className="phone-input"
+                      />
+                      <p className="mt-2 text-[11px] text-[#5F6D65]">Sélectionnez votre pays puis saisissez votre numéro. Le portail transmet le numéro au format international pour la recherche de votre espace client.</p>
                     </div>
                     <Button onClick={() => void handlePhoneContinue()} disabled={loading} className="h-14 w-full rounded-xl bg-[#00643C] text-white hover:bg-[#004D2E]">
                       {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Chargement…</> : <>Vérifier le numéro <ArrowRight className="ml-2 h-5 w-5" /></>}
