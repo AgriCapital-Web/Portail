@@ -256,7 +256,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                       </div>
                       <p className="mt-2 text-[11px] text-muted-foreground">{countriesError ? "Liste des pays indisponible. Veuillez réessayer plus tard." : country ? `${country.libelle} · ${telephoneIndicatif}` : "Chargement des pays…"}</p>
                     </div>
-                    <Button onClick={() => void handlePhoneContinue()} disabled={loading} className="h-14 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary-hover">
+                    <Button onClick={() => void handlePhoneContinue()} disabled={loading || !country} className="h-14 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary-hover">
                       {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Chargement…</> : <>Vérifier le numéro <ArrowRight className="ml-2 h-5 w-5" /></>}
                     </Button>
                     <Button
