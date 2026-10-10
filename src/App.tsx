@@ -19,6 +19,38 @@ const queryClient = new QueryClient({
   },
 });
 
+const PortalNavigationGuard = () => {
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const onSubmit = (event: Event) => {
+      const form = event.target;
+      if (form instanceof HTMLFormElement && form.dataset.nativeSubmit !== "true") event.preventDefault();
+    };
+
+    const onClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = event.composedPath().find((node) => node instanceof HTMLAnchorElement) as HTMLAnchorElement | undefined;
+      if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download") || anchor.dataset.nativeNavigation === "true") return;
+      const url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin) return;
+      if (/\.(?:pdf|jpg|jpeg|png|gif|webp|mp4|webm|csv|xlsx?|docx?|pptx?)$/i.test(url.pathname)) return;
+      if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash === window.location.hash) return;
+      event.preventDefault();
+      navigate(url.pathname + url.search + url.hash);
+    };
+
+    document.addEventListener("submit", onSubmit, true);
+    document.addEventListener("click", onClick, true);
+    return () => {
+      document.removeEventListener("submit", onSubmit, true);
+      document.removeEventListener("click", onClick, true);
+    };
+  }, [navigate]);
+
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
