@@ -359,11 +359,11 @@ const ClientDashboard = ({
             <Card className="card-brand-subtle rounded-2xl shadow-sm h-full">
               <CardContent className="p-4 sm:p-5 h-full min-w-0">
                 <div className="flex items-center gap-3">
-                  <div className="h-24 w-[4.5rem] sm:h-28 sm:w-[5.25rem] rounded-xl bg-white flex items-center justify-center shrink-0 border border-gold/40 shadow-sm overflow-hidden">
+                  <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full bg-[#E6F2EC] shrink-0 border-2 border-gold/40 shadow-sm overflow-hidden">
                     {(client.commercial.photo_url || client.commercial.photo) && !commercialPhotoError ? (
-                      <img src={client.commercial.photo_url || client.commercial.photo} alt={client.commercial.nom} className="h-full w-full object-contain" loading="lazy" decoding="async" onError={() => setCommercialPhotoError(true)} />
+                      <img src={client.commercial.photo_url || client.commercial.photo} alt={client.commercial.nom} className="absolute inset-0 h-full w-full rounded-full object-cover object-center" loading="lazy" decoding="async" onError={() => setCommercialPhotoError(true)} />
                     ) : (
-                      <span className="text-base font-bold text-primary">{getInitials(client.commercial.nom)}</span>
+                      <span className="absolute inset-0 flex items-center justify-center text-base font-bold text-primary">{getInitials(client.commercial.nom)}</span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
