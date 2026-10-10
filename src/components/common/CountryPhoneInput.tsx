@@ -7,15 +7,19 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-type Country = { code:string; name:string; callingCode:string; flag:string; minLocalDigits?:number; maxLocalDigits?:number };
+type Country = { code:string; name:string; callingCode:string; flag:string; minLocalDigits?:number; maxLocalDigits?:number; isDefault?:boolean };
 type Props = { label?:string; countryCode?:string; localValue?:string; required?:boolean; disabled?:boolean; onChange:(v:{countryCode:string;callingCode:string;localValue:string;internationalValue:string})=>void };
-const digits=(value:string)=>String(value||"").replace(/D/g,"");
+const countryFlag = (code: string) =>
+  String(code || "").toUpperCase().replace(/[A-Z]/g, (letter) =>
+    String.fromCodePoint(127397 + letter.charCodeAt(0))
+  );
+const digits=(value:string)=>String(value||"").replace(/\D/g,"");
 
 export default function CountryPhoneInput({label,countryCode,localValue="",required,disabled,onChange}:Props){
   const [countries,setCountries]=useState<Country[]>([]);
   const [open,setOpen]=useState(false);
-  useEffect(()=>{let active=true;void(async()=>{const {data,error}=await(supabase as any).from("referentiels_systeme").select("code,libelle,ordre,metadata").eq("categorie","pays_telephone").eq("actif",true).order("ordre").order("libelle");if(active&&!error)setCountries((data||[]).map((r:any)=>({code:r.code,name:r.libelle,callingCode:r.metadata?.callingCode||"",flag:r.metadata?.flag||"🌐",minLocalDigits:r.metadata?.minLocalDigits,maxLocalDigits:r.metadata?.maxLocalDigits})).filter((c:Country)=>c.callingCode));})();return()=>{active=false;};},[]);
-  const selected=countries.find(c=>c.code===countryCode)||countries[0];
+  useEffect(()=>{let active=true;void(async()=>{const {data,error}=await(supabase as any).from("referentiels_systeme").select("code,libelle,ordre,metadata").eq("categorie","pays_telephone").eq("actif",true).order("ordre").order("libelle");if(active&&!error)setCountries((data||[]).map((r:any)=>({code:r.code,name:r.libelle,callingCode:r.metadata?.callingCode||"",flag:r.metadata?.flag||countryFlag(r.code),minLocalDigits:r.metadata?.minLocalDigits,maxLocalDigits:r.metadata?.maxLocalDigits,isDefault:!!r.metadata?.is_default})).filter((c:Country)=>c.callingCode));})();return()=>{active=false;};},[]);
+  const selected=countries.find(c=>c.code===countryCode)||countries.find(c=>c.callingCode===countryCode)||countries.find(c=>c.isDefault)||countries[0];
   const options=useMemo(()=>countries.map(c=>({value:c.code,label:c.flag+" "+c.name+" "+c.callingCode})),[countries]);
   const emit=(country:Country,value:string)=>{const local=digits(value).slice(0,country.maxLocalDigits||undefined);onChange({countryCode:country.code,callingCode:country.callingCode,localValue:local,internationalValue:local?country.callingCode+local:""});};
   return <div className="space-y-2 min-w-0">
