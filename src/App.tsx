@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,7 +22,7 @@ const queryClient = new QueryClient({
 const PortalNavigationGuard = () => {
   const navigate = useNavigate();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const onSubmit = (event: Event) => {
       const form = event.target;
       if (form instanceof HTMLFormElement && form.dataset.nativeSubmit !== "true") event.preventDefault();
