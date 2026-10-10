@@ -393,11 +393,11 @@ const ClientDashboard = ({
                 <div className="min-w-0">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Une question ? Un projet ?</p>
                   <p className="font-bold text-base text-[#24352D]">Contacter par WhatsApp</p>
-                  <p className="mt-1 text-xs leading-relaxed text-[#5F6D65]">Échangez directement avec Larissa KONAN, votre contact AgriCapital, pour obtenir des informations ou être accompagné.</p>
+                  <p className="mt-1 text-xs leading-relaxed text-[#5F6D65]">Échangez directement avec {client?.commercial?.nom || "votre contact AgriCapital"} pour obtenir des informations ou être accompagné.</p>
                 </div>
               </div>
               <a
-                href="https://wa.me/2250713372539?text=Bonjour%20Larissa%2C%20je%20vous%20contacte%20depuis%20le%20portail%20AgriCapital."
+                href={(() => { const raw = String(client?.commercial?.whatsapp || client?.commercial?.telephone || "").replace(/[^0-9]/g, ""); const number = raw.startsWith("225") ? raw : raw.replace(/^0+/, ""); return number ? `https://wa.me/${number}?text=${encodeURIComponent(`Bonjour ${client?.commercial?.nom || ""}, je vous contacte depuis le portail AgriCapital.`)}` : "https://www.agricapital.ci/contact"; })()}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1DA851] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#128C7E] focus-visible:ring-offset-2"
