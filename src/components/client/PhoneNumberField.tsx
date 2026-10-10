@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from "react";
 import PhoneInput, { type Country } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
@@ -6,7 +7,7 @@ interface PhoneNumberFieldProps {
   disabled: boolean;
   value?: string;
   onChange: (value?: string) => void;
-  onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
 }
 
 export default function PhoneNumberField({
