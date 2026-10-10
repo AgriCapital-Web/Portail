@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ClientHome from "./client/ClientHome";
 import { createDemoAccount } from "@/data/demoAccount";
@@ -38,6 +38,7 @@ const ClientPortal = () => {
   const [plantations, setPlantations] = useState<any[]>([]);
   const [paiements, setPaiements] = useState<any[]>([]);
   const [restoring, setRestoring] = useState(true);
+  const lastRestoreFetchAt = useRef(0);
 
   const pathname = location.pathname;
   const isPaymentReturn = pathname === "/paiement/retour";
@@ -66,7 +67,6 @@ const ClientPortal = () => {
     let cancelled = false;
 
     const restore = async () => {
-      setRestoring(true);
       if (isDemoRoute) {
         const fresh = createDemoAccount();
         setClient(fresh.client);
@@ -86,9 +86,9 @@ const ClientPortal = () => {
       const token = sessionStorage.getItem("agri_portal_access_token");
 
       if (storedClient) {
-        setClient(storedClient);
-        setPlantations(storedPlantations);
-        setPaiements(storedPaiements);
+        setClient((current: any) => JSON.stringify(current) === JSON.stringify(storedClient) ? current : storedClient);
+        setPlantations((current: any[]) => JSON.stringify(current) === JSON.stringify(storedPlantations) ? current : storedPlantations);
+        setPaiements((current: any[]) => JSON.stringify(current) === JSON.stringify(storedPaiements) ? current : storedPaiements);
       }
 
       if (isPaymentReturn) {
@@ -112,12 +112,6 @@ const ClientPortal = () => {
       if (isHome && storedClient) navigate("/dashboard", { replace: true });
 
       if (isDemoSession) {
-        const fresh = createDemoAccount(storedClient.telephone);
-        const nextClient = { ...storedClient, ...fresh.client };
-        setClient(nextClient);
-        setPlantations(fresh.plantations);
-        sessionStorage.setItem("agri_client", JSON.stringify(nextClient));
-        sessionStorage.setItem("agri_plantations", JSON.stringify(fresh.plantations));
         if (!cancelled) setRestoring(false);
         return;
       }
@@ -126,6 +120,14 @@ const ClientPortal = () => {
         if (!cancelled) setRestoring(false);
         return;
       }
+
+      // La navigation interne réutilise l'état déjà chargé. Le polling/Realtime
+      // assure la fraîcheur des données sans relancer une requête bloquante à chaque clic.
+      if (storedClient && Date.now() - lastRestoreFetchAt.current < 30_000) {
+        if (!cancelled) setRestoring(false);
+        return;
+      }
+      lastRestoreFetchAt.current = Date.now();
 
       try {
         const { data, error } = await supabase.functions.invoke("client-portal-data", {
