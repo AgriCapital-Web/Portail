@@ -49,7 +49,7 @@ const ClientDashboard = ({
   const [client, setClient] = useState(initialClient);
   const [plantations, setPlantations] = useState(initialPlantations);
   const [paiements, setPaiements] = useState(initialPaiements);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);\n  const [commercialPhotoError, setCommercialPhotoError] = useState(false);
   const [progressionReferences, setProgressionReferences] = useState<any[]>([]);
 
   useEffect(() => {
@@ -147,9 +147,9 @@ const ClientDashboard = ({
       </Dialog>
       {/* Header */}
       <header className="px-4 pt-4 pb-2 sticky top-0 z-50" style={{ background: 'linear-gradient(180deg, #00643C 0%, #004d2e 100%)' }}>
-        <div className="container mx-auto flex items-center justify-between w-full max-w-7xl">
+        <div className="container mx-auto flex flex-wrap items-center justify-between gap-2 w-full max-w-7xl">
           <div className="bg-white rounded-lg p-1 flex items-center justify-center"><img src={logoWhiteBg} alt="AgriCapital" className="h-10 sm:h-12 object-contain" /></div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <PortalNotificationCenter compact />
             <AccessCodePanel
               telephone={client?.telephone}
@@ -164,15 +164,15 @@ const ClientDashboard = ({
         </div>
       </header>
 
-      <main className="client-page-content flex-1 container mx-auto space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-5 w-full max-w-[1400px] pb-8 lg:pb-12 pt-4 lg:pt-6">
+      <main className="client-page-content flex-1 container mx-auto px-3 min-[420px]:px-4 sm:px-5 lg:px-8 space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-5 w-full max-w-[1400px] pb-8 lg:pb-12 pt-4 lg:pt-6 min-w-0">
         
         {/* Profile Card */}
-        <Card className="border-0 shadow-xl overflow-hidden rounded-2xl lg:col-span-5" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <Card className="border-0 shadow-xl overflow-hidden rounded-2xl min-w-0 lg:col-span-5" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="h-14 w-14 rounded-2xl overflow-hidden border-2 border-gold/40 shadow-lg flex-shrink-0">
+              <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl overflow-hidden border-2 border-gold/40 shadow-lg flex-shrink-0">
                 {client.photo_profil_url ? (
-                  <img src={client.photo_profil_url} alt={client.nom_complet} className="h-full w-full object-cover" />
+                  <img src={client.photo_profil_url} alt={client.nom_complet} className="h-full w-full object-cover" onError={(event) => { event.currentTarget.style.display = "none"; }} />
                 ) : (
                   <div className="h-full w-full bg-white/20 flex items-center justify-center">
                     <span className="text-lg font-bold text-white">{getInitials(client.nom_complet)}</span>
@@ -352,14 +352,14 @@ const ClientDashboard = ({
         )}
 
         {/* Contact commercial et WhatsApp : côte à côte dès que l'écran le permet */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:col-span-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0 lg:col-span-12">
           {client?.commercial && (
             <Card className="card-brand-subtle rounded-2xl shadow-sm h-full">
-              <CardContent className="p-4 h-full">
+              <CardContent className="p-4 sm:p-5 h-full min-w-0">
                 <div className="flex items-center gap-3">
-                  <div className="h-16 w-16 rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 border-2 border-gold/30">
-                    {client.commercial.photo_url || client.commercial.photo ? (
-                      <img src={client.commercial.photo_url || client.commercial.photo} alt={client.commercial.nom} className="h-full w-full object-cover" />
+                  <div className="h-16 w-16 sm:h-[4.5rem] sm:w-[4.5rem] rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 border-2 border-gold/30">
+                    {(client.commercial.photo_url || client.commercial.photo) && !commercialPhotoError ? (
+                      <img src={client.commercial.photo_url || client.commercial.photo} alt={client.commercial.nom} className="h-full w-full object-cover" onError={() => setCommercialPhotoError(true)} />
                     ) : (
                       <span className="text-base font-bold text-primary">{getInitials(client.commercial.nom)}</span>
                     )}
@@ -392,15 +392,15 @@ const ClientDashboard = ({
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs uppercase tracking-wider text-muted-foreground">Une question ? Un projet ?</p>
-                  <p className="font-bold text-base text-[#24352D]">Contacter par WhatsApp</p>
-                  <p className="mt-2 text-sm leading-relaxed text-[#5F6D65]">Échangez directement avec {client?.commercial?.nom || "votre contact AgriCapital"} pour obtenir des informations ou être accompagné.</p>
+                  <p className="text-[clamp(1rem,2.5vw,1.125rem)] leading-snug font-bold text-[#24352D]">Contacter par WhatsApp</p>
+                  <p className="mt-2 text-[clamp(0.9rem,2.2vw,1rem)] leading-relaxed text-[#5F6D65] break-words">Échangez directement avec {client?.commercial?.nom || "votre contact AgriCapital"} pour obtenir des informations ou être accompagné.</p>
                 </div>
               </div>
               <a
                 href={(() => { const raw = String(client?.commercial?.whatsapp || client?.commercial?.telephone || "").replace(/[^0-9]/g, ""); const number = raw.startsWith("225") ? raw : `225${raw}`; return number ? `https://wa.me/${number}?text=${encodeURIComponent(`Bonjour ${client?.commercial?.nom || ""}, je vous contacte depuis le portail AgriCapital.`)}` : "https://www.agricapital.ci/contact"; })()}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1DA851] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#128C7E] focus-visible:ring-offset-2"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-base leading-snug font-bold text-white transition-colors hover:bg-[#1DA851] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#128C7E] focus-visible:ring-offset-2"
               >
                 <MessageCircle className="h-4 w-4" /> Ouvrir WhatsApp
               </a>
