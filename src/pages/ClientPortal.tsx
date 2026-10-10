@@ -42,6 +42,7 @@ const ClientPortal = () => {
   const pathname = location.pathname;
   const isPaymentReturn = pathname === "/paiement/retour";
   const isHome = pathname === "/";
+  const isDemoRoute = pathname === "/demo";
   const isPrivate = pathname !== "/";
 
   const privateView: PrivateView = useMemo(() => {
@@ -66,6 +67,19 @@ const ClientPortal = () => {
 
     const restore = async () => {
       setRestoring(true);
+      if (isDemoRoute) {
+        const fresh = createDemoAccount();
+        setClient(fresh.client);
+        setPlantations(fresh.plantations);
+        setPaiements(fresh.paiements);
+        sessionStorage.setItem("agri_client", JSON.stringify(fresh.client));
+        sessionStorage.setItem("agri_plantations", JSON.stringify(fresh.plantations));
+        sessionStorage.setItem("agri_paiements", JSON.stringify(fresh.paiements));
+        sessionStorage.setItem("agri_demo", "1");
+        sessionStorage.removeItem("agri_portal_access_token");
+        if (!cancelled) setRestoring(false);
+        return;
+      }
       const storedClient = readJson<any>("agri_client");
       const storedPlantations = readJson<any[]>("agri_plantations") || [];
       const storedPaiements = readJson<any[]>("agri_paiements") || [];
@@ -149,7 +163,7 @@ const ClientPortal = () => {
 
     void restore();
     return () => { cancelled = true; };
-  }, [isPaymentReturn, isHome, pathname, navigate]);
+  }, [isPaymentReturn, isHome, isDemoRoute, pathname, navigate]);
 
   useEffect(() => {
     if (!client || isPaymentReturn || privateView === "dashboard" || privateView === "plantation-hub") return;
@@ -209,7 +223,7 @@ const ClientPortal = () => {
     sessionStorage.setItem("agri_client", JSON.stringify(clientData));
     sessionStorage.setItem("agri_plantations", JSON.stringify(plants));
     sessionStorage.setItem("agri_paiements", JSON.stringify(paies));
-    navigate("/dashboard", { replace: true });
+    navigate(isLocalDemo(clientData) ? "/demo" : "/dashboard", { replace: true });
   };
 
   const handleLogout = () => {
