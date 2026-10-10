@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,7 @@ import { Loader2, ArrowRight, MessageCircle, ShieldCheck, KeyRound, ArrowLeft, L
 import { Helmet } from "react-helmet-async";
 import PortalAccessSupportDialog from "@/components/client/PortalAccessSupportDialog";
 import { createDemoAccount } from "@/data/demoAccount";
-import PhoneInput, { isValidPhoneNumber, type Country } from "react-phone-number-input";
-import "react-phone-number-input/style.css";
+const PhoneNumberField = lazy(() => import("@/components/client/PhoneNumberField"));
 import { usePortalReferences } from "@/hooks/usePortalReferences";
 
 interface ClientHomeProps {
@@ -57,6 +56,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
 
   const handlePhoneContinue = async () => {
     const phone = cleanPhone();
+    const { isValidPhoneNumber } = await import("react-phone-number-input");
     if (!phone || !isValidPhoneNumber(phone)) {
       toast({ variant: "destructive", title: "Numéro invalide", description: "Veuillez sélectionner le pays puis saisir un numéro de téléphone valide." });
       return;
@@ -198,18 +198,15 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                   <div className="space-y-4 sm:space-y-5">
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-primary">Numéro de téléphone</label>
-                      <PhoneInput
-                        countries={countries.map(row => row.code as Country)}
-                        disabled={countriesLoading || countriesError}
-                        international
-                        defaultCountry="CI"
-                        countryCallingCodeEditable={false}
-                        value={telephone}
-                        onChange={setTelephone}
-                        onKeyDown={(e) => { if (e.key === "Enter") void handlePhoneContinue(); }}
-                        aria-label="Numéro de téléphone international"
-                        className="phone-input"
-                      />
+                      <Suspense fallback={<Input value={telephone || ""} onChange={(e) => setTelephone(e.target.value)} placeholder="+225 07 00 00 00 00" disabled={countriesLoading || countriesError} aria-label="Numéro de téléphone" className="phone-input" />}>
+                        <PhoneNumberField
+                          countries={countries.map((row) => row.code)}
+                          disabled={countriesLoading || countriesError}
+                          value={telephone}
+                          onChange={setTelephone}
+                          onKeyDown={(e) => { if (e.key === "Enter") void handlePhoneContinue(); }}
+                        />
+                      </Suspense>
                       {countriesError && <p role="alert" className="mt-2 text-sm text-destructive">La liste des pays est indisponible. Réessayez dans quelques instants.</p>}
                     </div>
                     <Button onClick={() => void handlePhoneContinue()} disabled={loading || countriesLoading || countriesError} className="min-h-12 h-auto py-3 w-full rounded-lg whitespace-normal text-base leading-snug bg-primary text-primary-foreground hover:bg-muted">
