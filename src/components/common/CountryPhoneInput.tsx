@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,11 +17,14 @@ const digits=(value:string)=>String(value||"").replace(/\D/g,"");
 
 export default function CountryPhoneInput({label,countryCode,localValue="",required,disabled,onChange}:Props){
   const [countries,setCountries]=useState<Country[]>([]);
+  const [selectedCode,setSelectedCode]=useState("");
+  const lastEmittedCallingCode=useRef<string|null>(null);
   const [open,setOpen]=useState(false);
   useEffect(()=>{let active=true;void(async()=>{const {data,error}=await(supabase as any).from("referentiels_systeme").select("code,libelle,ordre,metadata").eq("categorie","pays_telephone").eq("actif",true).order("ordre").order("libelle");if(active&&!error)setCountries((data||[]).map((r:any)=>({code:r.code,name:r.libelle,callingCode:r.metadata?.callingCode||"",flag:r.metadata?.flag||countryFlag(r.code),minLocalDigits:r.metadata?.minLocalDigits,maxLocalDigits:r.metadata?.maxLocalDigits,isDefault:!!r.metadata?.is_default})).filter((c:Country)=>c.callingCode));})();return()=>{active=false;};},[]);
-  const selected=countries.find(c=>c.code===countryCode)||(()=>{const matches=countries.filter(c=>c.callingCode===countryCode);return matches.length===1?matches[0]:undefined;})()||countries.find(c=>c.isDefault)||countries[0];
+  useEffect(()=>{if(!countries.length)return;if(lastEmittedCallingCode.current&&countryCode===lastEmittedCallingCode.current){lastEmittedCallingCode.current=null;return;}const exact=countries.find(c=>c.code===countryCode);const matches=countries.filter(c=>c.callingCode===countryCode);setSelectedCode((exact|| (matches.length===1?matches[0]:undefined)||countries.find(c=>c.isDefault)||countries[0])?.code||"");},[countryCode,countries]);
+  const selected=countries.find(c=>c.code===selectedCode)||countries.find(c=>c.isDefault)||countries[0];
   const options=useMemo(()=>countries.map(c=>({value:c.code,label:c.flag+" "+c.name+" "+c.callingCode})),[countries]);
-  const emit=(country:Country,value:string)=>{const local=digits(value).slice(0,country.maxLocalDigits||undefined);onChange({countryCode:country.code,callingCode:country.callingCode,localValue:local,internationalValue:local?country.callingCode+local:""});};
+  const emit=(country:Country,value:string)=>{setSelectedCode(country.code);lastEmittedCallingCode.current=country.callingCode;const local=digits(value).slice(0,country.maxLocalDigits||undefined);onChange({countryCode:country.code,callingCode:country.callingCode,localValue:local,internationalValue:local?country.callingCode+local:""});};
   return <div className="space-y-2 min-w-0">
     {label&&<label className="text-sm font-medium">{label}{required&&" *"}</label>}
     <div className="flex w-full min-w-0 gap-2">
