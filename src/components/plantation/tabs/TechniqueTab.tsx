@@ -16,13 +16,13 @@ export const TechniqueTab = ({ plantation }: { plantation: any }) => {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 gap-3">
         {stats.map((s, i) => (
           <Card key={i} className="card-brand-subtle rounded-2xl">
-            <CardContent className="p-3 text-center">
+            <CardContent className="p-4 text-center min-w-0">
               <s.icon className="h-4 w-4 mx-auto mb-1 text-primary" />
-              <p className="text-lg font-bold">{s.value}</p>
-              <p className="text-[10px] text-muted-foreground">{s.label}</p>
+              <p className="text-xl font-bold break-words">{s.value}</p>
+              <p className="text-sm leading-snug text-muted-foreground">{s.label}</p>
             </CardContent>
           </Card>
         ))}
@@ -32,15 +32,15 @@ export const TechniqueTab = ({ plantation }: { plantation: any }) => {
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-primary" />
             <div>
-              <p className="text-[10px] uppercase text-muted-foreground">Dernière intervention</p>
-              <p className="text-sm font-semibold">{plantation?.derniere_intervention || "En attente"}</p>
+              <p className="text-xs uppercase text-muted-foreground">Dernière intervention</p>
+              <p className="text-base font-semibold break-words">{plantation?.derniere_intervention || "En attente"}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Wrench className="h-4 w-4 text-gold" />
             <div>
               <p className="text-[10px] uppercase text-muted-foreground">Prochaine intervention prévue</p>
-              <p className="text-sm font-semibold">{plantation?.prochaine_intervention || "En attente"}</p>
+              <p className="text-base font-semibold break-words">{plantation?.prochaine_intervention || "En attente"}</p>
             </div>
           </div>
         </CardContent>
@@ -49,14 +49,14 @@ export const TechniqueTab = ({ plantation }: { plantation: any }) => {
       {tickets.length > 0 && (
         <Card className="rounded-2xl">
           <CardContent className="p-4 space-y-3">
-            <p className="text-xs font-bold uppercase text-muted-foreground">Suivi CRM récent</p>
+            <p className="text-sm font-bold uppercase text-muted-foreground">Suivi CRM récent</p>
             {tickets.slice(0, 5).map((ticket) => (
               <div key={ticket.id} className="border-t border-border pt-3 first:border-0 first:pt-0">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-semibold">{ticket.titre}</p>
-                  <span className="text-[10px] text-primary">{ticket.statut || "ouvert"}</span>
+                  <p className="text-base font-semibold break-words">{ticket.titre}</p>
+                  <span className="text-xs text-primary whitespace-nowrap">{ticket.statut || "ouvert"}</span>
                 </div>
-                {ticket.description && <p className="mt-1 text-xs text-muted-foreground">{ticket.description}</p>}
+                {ticket.description && <p className="mt-2 text-sm leading-relaxed text-muted-foreground break-words">{ticket.description}</p>}
               </div>
             ))}
           </CardContent>
