@@ -49,7 +49,9 @@ const ClientDashboard = ({
   const [client, setClient] = useState(initialClient);
   const [plantations, setPlantations] = useState(initialPlantations);
   const [paiements, setPaiements] = useState(initialPaiements);
-  const [refreshing, setRefreshing] = useState(false);\n  const [commercialPhotoError, setCommercialPhotoError] = useState(false);\n  const [clientPhotoError, setClientPhotoError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [commercialPhotoError, setCommercialPhotoError] = useState(false);
+  const [clientPhotoError, setClientPhotoError] = useState(false);
   const [progressionReferences, setProgressionReferences] = useState<any[]>([]);
 
   useEffect(() => {
