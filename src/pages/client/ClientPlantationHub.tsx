@@ -57,13 +57,13 @@ const ClientPlantationHub = ({ client, plantations, initialPlantationId, onPlant
             <div className="bg-white rounded-lg p-1"><img src={logoWhiteBg} alt="AgriCapital" className="h-9 object-contain" /></div>
             <div className="w-9" />
           </div>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[10px] uppercase text-white/60 tracking-wider">Ma Plantation</p>
-              <h1 className="text-lg font-bold text-white truncate">{plantation?.nom_plantation || plantation?.id_unique || "—"}</h1>
-              <div className="flex items-center gap-2 mt-1 flex-wrap"><Badge className="bg-white/10 border-white/20 text-white text-[9px]">{formuleLabel}</Badge>{isPalmTerroir && <span className="text-[9px] text-white/70">Encadrement & suivi après mise en terre</span>}</div>
+              <p className="text-xs uppercase text-white/70 tracking-wider">Ma Plantation</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-white break-words leading-snug">{plantation?.nom_plantation || plantation?.id_unique || "—"}</h1>
+              <div className="flex items-center gap-2 mt-1 flex-wrap"><Badge className="bg-white/10 border-white/20 text-white text-[9px]">{formuleLabel}</Badge>{isPalmTerroir && <span className="text-xs text-white/80">Encadrement & suivi après mise en terre</span>}</div>
             </div>
-            <div className="w-56 shrink-0">
+            <div className="w-full sm:w-56 min-w-0 sm:shrink-0">
               <PlantationSelector plantations={plantations} selectedId={selectedId} onChange={(id) => { setSelectedId(id); onPlantationChange?.(id); }} />
             </div>
           </div>
@@ -71,13 +71,13 @@ const ClientPlantationHub = ({ client, plantations, initialPlantationId, onPlant
       </header>
 
       <main className="flex-1 container mx-auto px-3 sm:px-4 lg:px-8 w-full max-w-[1400px] py-4 lg:py-6 min-h-[calc(100svh-150px)]">
-        {isPalmTerroir && <div className="mb-4 rounded-2xl border border-[#B9D8C8] bg-white p-4 text-sm leading-relaxed text-[#405149] shadow-sm"><strong className="text-[#00643C]">PalmTerroir :</strong> après la mise en terre, les travaux réguliers d’entretien et les intrants restent à la charge du client. AgriCapital assure l’encadrement, les recommandations et le suivi technique.</div>}
+        {isPalmTerroir && <div className="mb-4 rounded-2xl border border-[#B9D8C8] bg-white p-4 sm:p-5 text-base leading-relaxed text-[#405149] shadow-sm"><strong className="text-[#00643C]">PalmTerroir :</strong> après la mise en terre, les travaux réguliers d’entretien et les intrants restent à la charge du client. AgriCapital assure l’encadrement, les recommandations et le suivi technique.</div>}
         <Tabs defaultValue="overview" className="w-full min-h-[520px]">
-          <TabsList className="w-full flex overflow-x-auto no-scrollbar h-auto p-1 bg-white border border-[#D9E2DD] shadow-sm backdrop-blur rounded-xl mb-4 justify-start lg:justify-center">
+          <TabsList className="w-full flex overflow-x-auto no-scrollbar h-auto p-1.5 bg-white border border-[#D9E2DD] shadow-sm backdrop-blur rounded-xl mb-4 justify-start gap-1">
             {tabs.map((t) => (
-              <TabsTrigger key={t.value} value={t.value} className="flex-shrink-0 gap-1.5 text-xs text-[#52615A] hover:text-[#24352D] data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm">
+              <TabsTrigger key={t.value} value={t.value} className="flex-shrink-0 gap-2 px-3 py-2 text-sm font-medium text-[#52615A] hover:text-[#24352D] data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm">
                 <t.icon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{t.label}</span>
+                <span>{t.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
