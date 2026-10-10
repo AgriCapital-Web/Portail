@@ -19,7 +19,7 @@ export default function CountryPhoneInput({label,countryCode,localValue="",requi
   const [countries,setCountries]=useState<Country[]>([]);
   const [open,setOpen]=useState(false);
   useEffect(()=>{let active=true;void(async()=>{const {data,error}=await(supabase as any).from("referentiels_systeme").select("code,libelle,ordre,metadata").eq("categorie","pays_telephone").eq("actif",true).order("ordre").order("libelle");if(active&&!error)setCountries((data||[]).map((r:any)=>({code:r.code,name:r.libelle,callingCode:r.metadata?.callingCode||"",flag:r.metadata?.flag||countryFlag(r.code),minLocalDigits:r.metadata?.minLocalDigits,maxLocalDigits:r.metadata?.maxLocalDigits,isDefault:!!r.metadata?.is_default})).filter((c:Country)=>c.callingCode));})();return()=>{active=false;};},[]);
-  const selected=countries.find(c=>c.code===countryCode)||countries.find(c=>c.callingCode===countryCode)||countries.find(c=>c.isDefault)||countries[0];
+  const selected=countries.find(c=>c.code===countryCode)||(()=>{const matches=countries.filter(c=>c.callingCode===countryCode);return matches.length===1?matches[0]:undefined;})()||countries.find(c=>c.isDefault)||countries[0];
   const options=useMemo(()=>countries.map(c=>({value:c.code,label:c.flag+" "+c.name+" "+c.callingCode})),[countries]);
   const emit=(country:Country,value:string)=>{const local=digits(value).slice(0,country.maxLocalDigits||undefined);onChange({countryCode:country.code,callingCode:country.callingCode,localValue:local,internationalValue:local?country.callingCode+local:""});};
   return <div className="space-y-2 min-w-0">
