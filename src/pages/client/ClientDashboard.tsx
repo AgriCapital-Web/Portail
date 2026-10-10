@@ -173,8 +173,8 @@ const ClientDashboard = ({
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl overflow-hidden border-2 border-gold/40 shadow-lg flex-shrink-0">
-                {client.photo_profil_url ? (
-                  <img src={client.photo_profil_url} alt={client.nom_complet} className="h-full w-full object-cover" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+                {client.photo_profil_url && !clientPhotoError ? (
+                  <img src={client.photo_profil_url} alt={client.nom_complet} className="h-full w-full object-contain" loading="lazy" decoding="async" onError={() => setClientPhotoError(true)} />
                 ) : (
                   <div className="h-full w-full bg-white/20 flex items-center justify-center">
                     <span className="text-lg font-bold text-white">{getInitials(client.nom_complet)}</span>
@@ -361,7 +361,7 @@ const ClientDashboard = ({
                 <div className="flex items-center gap-3">
                   <div className="h-16 w-16 sm:h-[4.5rem] sm:w-[4.5rem] rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 border-2 border-gold/30">
                     {(client.commercial.photo_url || client.commercial.photo) && !commercialPhotoError ? (
-                      <img src={client.commercial.photo_url || client.commercial.photo} alt={client.commercial.nom} className="h-full w-full object-cover" onError={() => setCommercialPhotoError(true)} />
+                      <img src={client.commercial.photo_url || client.commercial.photo} alt={client.commercial.nom} className="h-full w-full object-contain" loading="lazy" decoding="async" onError={() => setCommercialPhotoError(true)} />
                     ) : (
                       <span className="text-base font-bold text-primary">{getInitials(client.commercial.nom)}</span>
                     )}
