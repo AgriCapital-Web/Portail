@@ -198,6 +198,26 @@ h1, h2, h3, .font-display {
   .client-page-content,.client-page-content *{min-width:0}
   .client-page-content{width:100%;max-width:100%;overflow-x:hidden}
   .client-page-content table{display:block;width:100%;max-width:100%;overflow-x:auto}
+  /* Client portal: typography follows available space without forcing card overflow. */
+  .client-page-content :is(p,li,label,td,th,dd,dt){overflow-wrap:anywhere}
+  .client-page-content :is(input,button,select,textarea){max-width:100%}
+  .client-page-content [class*="rounded-2xl"]{min-width:0}
+  .client-page-content .text-\[10px\],.client-page-content .text-\[11px\]{font-size:clamp(.75rem,1.8vw,.875rem);line-height:1.4}
+  .client-page-content .text-xs{font-size:clamp(.8rem,1.8vw,.9rem);line-height:1.45}
+  .client-page-content .text-sm{font-size:clamp(.9rem,2vw,1rem);line-height:1.5}
+  .client-page-content .text-base{font-size:clamp(1rem,2.2vw,1.125rem);line-height:1.45}
+  .client-page-content .text-lg{font-size:clamp(1.125rem,2.8vw,1.35rem);line-height:1.3}
+  @media (max-width: 639px){
+    .client-page-content .text-\[10px\],.client-page-content .text-\[11px\]{font-size:.78rem}
+    .client-page-content .text-xs{font-size:.82rem}
+    .client-page-content .text-sm{font-size:.92rem}
+    .client-page-content .text-base{font-size:1rem}
+    .client-page-content .text-lg{font-size:1.18rem}
+    .client-page-content .card-brand-subtle,.client-page-content .card-brand,.client-page-content [data-slot="card"]{min-width:0}
+  }
+  @media (min-width: 640px) and (max-width: 1023px){
+    .client-page-content{padding-left:1rem;padding-right:1rem}
+  }
 }
 
 
