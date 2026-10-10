@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
-import { APP_BUILD_ID, initCacheBuster } from "./utils/cacheBuster";
+import { initCacheBuster } from "./utils/cacheBuster";
 
 type BoundaryState = { hasError: boolean };
 
@@ -24,14 +24,14 @@ class PortalErrorBoundary extends Component<{ children: ReactNode }, BoundarySta
         <main className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background px-6 text-center">
           <h1 className="text-xl font-semibold text-primary">Votre espace rencontre un problème temporaire.</h1>
           <p className="max-w-md text-sm text-muted-foreground">
-            Vos données ne sont pas supprimées. Rechargez la page pour reprendre votre navigation.
+            Vos données ne sont pas supprimées. Réessayez d’ouvrir cet écran sans recharger toute la plateforme.
           </p>
           <button
             type="button"
             className="rounded-md bg-primary px-5 py-3 font-medium text-primary-foreground"
-            onClick={() => window.location.reload()}
+            onClick={() => this.setState({ hasError: false })}
           >
-            Recharger la page
+            Réessayer
           </button>
         </main>
       );
@@ -40,21 +40,10 @@ class PortalErrorBoundary extends Component<{ children: ReactNode }, BoundarySta
   }
 }
 
-// Récupération automatique d'un ancien fichier JS conservé en cache après un déploiement.
-// Une seule tentative par version évite toute boucle de rechargement.
+// Une erreur de chargement de module ne doit jamais provoquer de rechargement forcé.
 window.addEventListener("vite:preloadError", (event) => {
   event.preventDefault();
-  const key = `ac_portal_preload_retry_${APP_BUILD_ID}`;
-  try {
-    if (sessionStorage.getItem(key) !== "1") {
-      sessionStorage.setItem(key, "1");
-      window.location.reload();
-    } else {
-      console.error("[AC_Clients] Le chargement d'un module a échoué après une nouvelle tentative.");
-    }
-  } catch {
-    console.error("[AC_Clients] Impossible de récupérer automatiquement le module.");
-  }
+  console.error("[AC_Clients] Un module n’a pas pu être chargé. La navigation reste active.", event);
 });
 
 // Enregistre le Service Worker unique de la PWA : cache, Push et clics notification.
