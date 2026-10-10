@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { lazy, Suspense, useState, useCallback, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +16,7 @@ import {
 import { format, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { TransactionStatusWidget } from "@/components/client/TransactionStatusWidget";
-import { MapTab } from "@/components/plantation/tabs/MapTab";
+const MapTab = lazy(() => import("@/components/plantation/tabs/MapTab").then((m) => ({ default: m.MapTab })));
 import AccessCodePanel from "@/components/client/AccessCodePanel";
 import PortalNotificationCenter from "@/components/client/PortalNotificationCenter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -271,7 +271,7 @@ const ClientDashboard = ({
             <Card className="rounded-2xl shadow-sm lg:col-span-12 overflow-hidden">
               <CardContent className="p-0">
                 <div className="p-4"><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Carte</p><p className="font-bold">Localisation de votre actif agricole</p></div>
-                <MapTab plantation={mapAsset} />
+                <Suspense fallback={<div className="min-h-48 p-6 text-sm text-muted-foreground">Chargement de la carte…</div>}><MapTab plantation={mapAsset} /></Suspense>
               </CardContent>
             </Card>
           ) : null;
