@@ -53,8 +53,8 @@ export function useAutoRefresh(
           if (payloadSignature !== lastPayloadRef.current) {
             lastPayloadRef.current = payloadSignature;
             cbRef.current(data.client, plants, pays);
+            setLastSync(new Date());
           }
-          setLastSync(new Date());
           setStatus("live");
 
           // === Journal de synchronisation par compte ===
