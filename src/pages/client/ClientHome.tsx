@@ -169,17 +169,17 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
         <div className="mx-auto grid w-full max-w-3xl gap-4 sm:gap-6 lg:gap-10 items-stretch">
           <div className="flex items-center justify-center">
             <div className="w-full max-w-2xl min-w-0">
-              <div className="mb-4 sm:mb-6 flex justify-center">
-                <img src={logoWhiteBg} alt="AgriCapital" className="h-auto w-[clamp(190px,48vw,360px)] max-w-full object-contain mix-blend-multiply" />
+              <div className="mb-5 sm:mb-7 flex justify-center">
+                <img src={logoWhiteBg} alt="AgriCapital" className="h-auto w-[clamp(280px,82vw,460px)] max-w-full object-contain mix-blend-multiply" />
               </div>
 
-              <section className="flex flex-col justify-center rounded-2xl border border-border bg-card p-4 min-[420px]:p-5 sm:p-7 lg:p-9 shadow-xl min-w-0">
-                <div className="mb-5 sm:mb-7 text-center">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-muted text-primary">
-                    {step === "phone" ? <ShieldCheck className="h-6 w-6" /> : <KeyRound className="h-6 w-6" />}
+              <section className="flex flex-col justify-center rounded-2xl border border-border bg-card p-5 min-[420px]:p-6 sm:p-8 lg:p-10 shadow-xl min-w-0">
+                <div className="mb-6 sm:mb-8 text-center">
+                  <div className="mx-auto mb-4 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-xl bg-muted text-primary">
+                    {step === "phone" ? <ShieldCheck className="h-7 w-7 sm:h-8 sm:w-8" /> : <KeyRound className="h-7 w-7 sm:h-8 sm:w-8" />}
                   </div>
-                  <h1 className="text-[clamp(1.35rem,4vw,1.75rem)] leading-tight font-bold text-primary">Votre espace client</h1>
-                  <p className="mt-2 text-[clamp(0.9rem,2.5vw,1rem)] leading-relaxed text-muted-foreground">
+                  <h1 className="text-[clamp(1.55rem,5vw,2rem)] leading-tight font-bold text-primary">Votre espace client</h1>
+                  <p className="mt-3 text-[clamp(1rem,2.8vw,1.125rem)] leading-relaxed text-muted-foreground">
                     {step === "phone"
                       ? "Connectez-vous avec le numéro utilisé lors de votre contractualisation."
                       : step === "setup"
@@ -197,7 +197,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                 {step === "phone" && (
                   <div className="space-y-4 sm:space-y-5">
                     <div>
-                      <label className="mb-2 block text-sm font-semibold text-primary">Numéro de téléphone</label>
+                      <label className="mb-2 block text-[clamp(1rem,2.5vw,1.1rem)] font-semibold text-primary">Numéro de téléphone</label>
                       <Suspense fallback={<Input value={telephone || ""} onChange={(e) => setTelephone(e.target.value)} placeholder="+225 07 00 00 00 00" disabled={countriesLoading || countriesError} aria-label="Numéro de téléphone" className="phone-input" />}>
                         <PhoneNumberField
                           countries={countries.map((row) => row.code)}
@@ -209,10 +209,10 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                       </Suspense>
                       {countriesError && <p role="alert" className="mt-2 text-sm text-destructive">La liste des pays est indisponible. Réessayez dans quelques instants.</p>}
                     </div>
-                    <Button onClick={() => void handlePhoneContinue()} disabled={loading || countriesLoading || countriesError} className="min-h-12 h-auto py-3 w-full rounded-lg whitespace-normal text-base leading-snug bg-primary text-primary-foreground hover:bg-muted">
+                    <Button onClick={() => void handlePhoneContinue()} disabled={loading || countriesLoading || countriesError} className="min-h-14 h-auto py-4 w-full rounded-xl whitespace-normal text-[clamp(1rem,2.6vw,1.125rem)] leading-snug bg-primary text-primary-foreground hover:bg-muted">
                       {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Chargement…</> : <>Vérifier le numéro <ArrowRight className="ml-2 h-5 w-5" /></>}
                     </Button>
-                    <Button type="button" variant="outline" onClick={handleDemoEnter} className="min-h-12 h-auto py-3 w-full whitespace-normal text-base leading-snug">
+                    <Button type="button" variant="outline" onClick={handleDemoEnter} className="min-h-14 h-auto py-4 w-full rounded-xl whitespace-normal text-[clamp(1rem,2.6vw,1.125rem)] leading-snug">
                       <Sparkles className="mr-2 h-5 w-5" /> Accéder à la démonstration
                     </Button>
                   </div>
