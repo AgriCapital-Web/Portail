@@ -24,6 +24,7 @@ export function useAutoRefresh(
   const cbRef = useRef(onData);
   cbRef.current = onData;
   const snapRef = useRef<CrmSnapshot | null>(null);
+  const lastPayloadRef = useRef("");
   const errLoggedRef = useRef(false);
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export function useAutoRefresh(
     }
     let cancelled = false;
     snapRef.current = null;
+    lastPayloadRef.current = "";
 
     let refreshTimer: number | null = null;
     const refresh = async (silent = true, trigger = "polling") => {
@@ -47,7 +49,11 @@ export function useAutoRefresh(
         if (!cancelled && !error && data?.success) {
           const plants = data.plantations || [];
           const pays = data.paiements || [];
-          cbRef.current(data.client, plants, pays);
+          const payloadSignature = JSON.stringify({ client: data.client, plantations: plants, paiements: pays });
+          if (payloadSignature !== lastPayloadRef.current) {
+            lastPayloadRef.current = payloadSignature;
+            cbRef.current(data.client, plants, pays);
+          }
           setLastSync(new Date());
           setStatus("live");
 
