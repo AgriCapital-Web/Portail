@@ -11,7 +11,7 @@ import { formatCFA } from "@/utils/pricing";
 import { 
   MapPin, Phone, Sprout, CreditCard, Wallet,
   ArrowRight, LogOut, CheckCircle, AlertTriangle, Clock,
-  RefreshCw, TrendingUp, Leaf, ChevronRight, Zap, Target, Calendar
+  RefreshCw, TrendingUp, Leaf, ChevronRight, Zap, Target, Calendar, MessageCircle
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -351,44 +351,62 @@ const ClientDashboard = ({
           </Card>
         )}
 
-        {/* Mon Conseiller */}
-        {client.commercial && (
-          <Card className="card-brand-subtle rounded-2xl shadow-sm lg:col-span-6">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 border-2 border-gold/30">
-                  {client.commercial.photo ? (
-                    <img src={client.commercial.photo} alt={client.commercial.nom} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-base font-bold text-primary">{getInitials(client.commercial.nom)}</span>
-                  )}
+        {/* Contact commercial et WhatsApp : côte à côte dès que l'écran le permet */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:col-span-12">
+          {client?.commercial && (
+            <Card className="card-brand-subtle rounded-2xl shadow-sm h-full">
+              <CardContent className="p-4 h-full">
+                <div className="flex items-center gap-3">
+                  <div className="h-14 w-14 rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 border-2 border-gold/30">
+                    {client.commercial.photo_url || client.commercial.photo ? (
+                      <img src={client.commercial.photo_url || client.commercial.photo} alt={client.commercial.nom} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-base font-bold text-primary">{getInitials(client.commercial.nom)}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{client.commercial.fonction || "Votre contact commercial"}</p>
+                    <p className="font-bold text-sm">{client.commercial.nom}</p>
+                    {client.commercial.telephone && (
+                      <a href={`tel:${client.commercial.telephone}`} className="text-xs text-primary font-semibold hover:underline inline-flex items-center gap-1 mt-1">
+                        <Phone className="h-3 w-3" /> {client.commercial.telephone}
+                      </a>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{client.commercial.fonction}</p>
-                  <p className="font-bold text-sm truncate">{client.commercial.nom}</p>
-                  {client.commercial.telephone && (
-                    <a href={`tel:${client.commercial.telephone}`} className="text-xs text-primary font-semibold hover:underline inline-flex items-center gap-1 mt-0.5">
-                      <Phone className="h-3 w-3" /> {client.commercial.telephone}
-                    </a>
-                  )}
-                </div>
-                {client.commercial.telephone && (
-                  <a href={`https://wa.me/225${client.commercial.telephone.replace(/\D/g,'').replace(/^225/,'')}`}
-                     target="_blank" rel="noreferrer"
-                     className="h-10 w-10 rounded-xl bg-[#22C55E]/10 hover:bg-[#22C55E]/20 flex items-center justify-center text-[#22C55E] transition-colors">
-                    <Phone className="h-4 w-4" />
-                  </a>
+                {client.numero_contrat && (
+                  <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>Contrat</span>
+                    <span className="font-mono font-bold text-foreground">{client.numero_contrat}</span>
+                  </div>
                 )}
-              </div>
-              {client.numero_contrat && (
-                <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground">
-                  <span>Contrat</span>
-                  <span className="font-mono font-bold text-foreground">{client.numero_contrat}</span>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="rounded-2xl shadow-sm border border-[#CDEBDD] bg-white h-full">
+            <CardContent className="p-4 h-full flex flex-col justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="h-12 w-12 rounded-2xl bg-[#25D366]/10 text-[#128C7E] flex items-center justify-center shrink-0">
+                  <MessageCircle className="h-6 w-6" />
                 </div>
-              )}
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Une question ? Un projet ?</p>
+                  <p className="font-bold text-base text-[#24352D]">Contacter par WhatsApp</p>
+                  <p className="mt-1 text-xs leading-relaxed text-[#5F6D65]">Échangez directement avec Larissa KONAN, votre contact AgriCapital, pour obtenir des informations ou être accompagné.</p>
+                </div>
+              </div>
+              <a
+                href="https://wa.me/2250713372539?text=Bonjour%20Larissa%2C%20je%20vous%20contacte%20depuis%20le%20portail%20AgriCapital."
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1DA851] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#128C7E] focus-visible:ring-offset-2"
+              >
+                <MessageCircle className="h-4 w-4" /> Ouvrir WhatsApp
+              </a>
             </CardContent>
           </Card>
-        )}
+        </div>
 
         {/* Contact */}
         <Card className="card-brand-green rounded-2xl shadow-none lg:col-span-12">
