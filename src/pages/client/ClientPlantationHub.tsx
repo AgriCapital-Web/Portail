@@ -1,18 +1,18 @@
-import { useState, useMemo } from "react";
+import { lazy, Suspense, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, LayoutGrid, ListChecks, Sprout, Camera, FileText, MapPin, FileBarChart2, MessageSquare } from "lucide-react";
 import logoWhiteBg from "@/assets/logo-white-bg.png";
 import { PlantationSelector } from "@/components/plantation/PlantationSelector";
-import { OverviewTab } from "@/components/plantation/tabs/OverviewTab";
-import { ProgressionTab } from "@/components/plantation/tabs/ProgressionTab";
-import { TechniqueTab } from "@/components/plantation/tabs/TechniqueTab";
-import { MediasTab } from "@/components/plantation/tabs/MediasTab";
-import { DocumentsTab } from "@/components/plantation/tabs/DocumentsTab";
-import { MapTab } from "@/components/plantation/tabs/MapTab";
-import { RapportsTab } from "@/components/plantation/tabs/RapportsTab";
-import { MessagerieTab } from "@/components/plantation/tabs/MessagerieTab";
+const OverviewTab = lazy(() => import("@/components/plantation/tabs/OverviewTab").then((m) => ({ default: m.OverviewTab })));
+const ProgressionTab = lazy(() => import("@/components/plantation/tabs/ProgressionTab").then((m) => ({ default: m.ProgressionTab })));
+const TechniqueTab = lazy(() => import("@/components/plantation/tabs/TechniqueTab").then((m) => ({ default: m.TechniqueTab })));
+const MediasTab = lazy(() => import("@/components/plantation/tabs/MediasTab").then((m) => ({ default: m.MediasTab })));
+const DocumentsTab = lazy(() => import("@/components/plantation/tabs/DocumentsTab").then((m) => ({ default: m.DocumentsTab })));
+const MapTab = lazy(() => import("@/components/plantation/tabs/MapTab").then((m) => ({ default: m.MapTab })));
+const RapportsTab = lazy(() => import("@/components/plantation/tabs/RapportsTab").then((m) => ({ default: m.RapportsTab })));
+const MessagerieTab = lazy(() => import("@/components/plantation/tabs/MessagerieTab").then((m) => ({ default: m.MessagerieTab })));
 import { ProductionTab } from "@/components/plantation/tabs/ProductionTab";
 import { IntrantsTab } from "@/components/plantation/tabs/IntrantsTab";
 import { RevenusTab } from "@/components/plantation/tabs/RevenusTab";
@@ -82,14 +82,14 @@ const ClientPlantationHub = ({ client, plantations, initialPlantationId, onPlant
             ))}
           </TabsList>
 
-          <TabsContent value="overview" className="min-h-[500px]"><OverviewTab plantation={plantation} client={client} /></TabsContent>
-          <TabsContent value="progression" className="min-h-[500px]"><ProgressionTab plantation={plantation} client={client} /></TabsContent>
-          <TabsContent value="technique" className="min-h-[500px]"><TechniqueTab plantation={plantation} /></TabsContent>
-          <TabsContent value="medias" className="min-h-[500px]"><MediasTab plantation={plantation} /></TabsContent>
-          <TabsContent value="documents" className="min-h-[500px]"><DocumentsTab plantation={plantation} client={client} /></TabsContent>
-          <TabsContent value="carte" className="min-h-[500px]"><MapTab plantation={plantation} /></TabsContent>
-          <TabsContent value="rapports" className="min-h-[500px]"><RapportsTab plantation={plantation} /></TabsContent>
-          <TabsContent value="messagerie" className="min-h-[500px]"><MessagerieTab client={client} plantation={plantation} /></TabsContent>
+          <TabsContent value="overview" className="min-h-[500px]"><Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Chargement de la vue d’ensemble…</div>}><OverviewTab plantation={plantation} client={client} /></Suspense></TabsContent>
+          <TabsContent value="progression" className="min-h-[500px]"><Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Chargement de la progression…</div>}><ProgressionTab plantation={plantation} client={client} /></Suspense></TabsContent>
+          <TabsContent value="technique" className="min-h-[500px]"><Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Chargement du suivi technique…</div>}><TechniqueTab plantation={plantation} /></Suspense></TabsContent>
+          <TabsContent value="medias" className="min-h-[500px]"><Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Chargement des photos…</div>}><MediasTab plantation={plantation} /></Suspense></TabsContent>
+          <TabsContent value="documents" className="min-h-[500px]"><Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Chargement des documents…</div>}><DocumentsTab plantation={plantation} client={client} /></Suspense></TabsContent>
+          <TabsContent value="carte" className="min-h-[500px]"><Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Chargement de la carte…</div>}><MapTab plantation={plantation} /></Suspense></TabsContent>
+          <TabsContent value="rapports" className="min-h-[500px]"><Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Chargement des rapports…</div>}><RapportsTab plantation={plantation} /></Suspense></TabsContent>
+          <TabsContent value="messagerie" className="min-h-[500px]"><Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Chargement de la messagerie…</div>}><MessagerieTab client={client} plantation={plantation} /></Suspense></TabsContent>
         </Tabs>
       </main>
 
