@@ -357,7 +357,7 @@ const ClientDashboard = ({
             <Card className="card-brand-subtle rounded-2xl shadow-sm h-full">
               <CardContent className="p-4 h-full">
                 <div className="flex items-center gap-3">
-                  <div className="h-14 w-14 rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 border-2 border-gold/30">
+                  <div className="h-16 w-16 rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 border-2 border-gold/30">
                     {client.commercial.photo_url || client.commercial.photo ? (
                       <img src={client.commercial.photo_url || client.commercial.photo} alt={client.commercial.nom} className="h-full w-full object-cover" />
                     ) : (
@@ -365,10 +365,10 @@ const ClientDashboard = ({
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{client.commercial.fonction || "Votre contact commercial"}</p>
-                    <p className="font-bold text-sm">{client.commercial.nom}</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">{client.commercial.fonction || "Votre contact commercial"}</p>
+                    <p className="font-bold text-base break-words">{client.commercial.nom}</p>
                     {client.commercial.telephone && (
-                      <a href={`tel:${client.commercial.telephone}`} className="text-xs text-primary font-semibold hover:underline inline-flex items-center gap-1 mt-1">
+                      <a href={`tel:${client.commercial.telephone}`} className="text-sm text-primary font-semibold hover:underline inline-flex items-center gap-1 mt-2">
                         <Phone className="h-3 w-3" /> {client.commercial.telephone}
                       </a>
                     )}
@@ -391,13 +391,13 @@ const ClientDashboard = ({
                   <MessageCircle className="h-6 w-6" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Une question ? Un projet ?</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Une question ? Un projet ?</p>
                   <p className="font-bold text-base text-[#24352D]">Contacter par WhatsApp</p>
-                  <p className="mt-1 text-xs leading-relaxed text-[#5F6D65]">Échangez directement avec {client?.commercial?.nom || "votre contact AgriCapital"} pour obtenir des informations ou être accompagné.</p>
+                  <p className="mt-2 text-sm leading-relaxed text-[#5F6D65]">Échangez directement avec {client?.commercial?.nom || "votre contact AgriCapital"} pour obtenir des informations ou être accompagné.</p>
                 </div>
               </div>
               <a
-                href={(() => { const raw = String(client?.commercial?.whatsapp || client?.commercial?.telephone || "").replace(/[^0-9]/g, ""); const number = raw.startsWith("225") ? raw : raw.replace(/^0+/, ""); return number ? `https://wa.me/${number}?text=${encodeURIComponent(`Bonjour ${client?.commercial?.nom || ""}, je vous contacte depuis le portail AgriCapital.`)}` : "https://www.agricapital.ci/contact"; })()}
+                href={(() => { const raw = String(client?.commercial?.whatsapp || client?.commercial?.telephone || "").replace(/[^0-9]/g, ""); const number = raw.startsWith("225") ? raw : `225${raw}`; return number ? `https://wa.me/${number}?text=${encodeURIComponent(`Bonjour ${client?.commercial?.nom || ""}, je vous contacte depuis le portail AgriCapital.`)}` : "https://www.agricapital.ci/contact"; })()}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1DA851] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#128C7E] focus-visible:ring-offset-2"
