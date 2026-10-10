@@ -1,4 +1,5 @@
-export const demoProfileUrl = "/images/photo-pdg-inocent-koffi.jpg";
+export const demoProfileUrl = "/images/larissa-demo.jpg";
+export const demoCommercial = { nom: "KONAN AMENAN LARISSA", fonction: "Conseillère commerciale", telephone: "+2250713372539", whatsapp: "+2250713372539", photo_url: "/images/larissa-demo.jpg" };
 
 export const demoMediaUrls = [
   "/demo/plantation-1.jpg",
