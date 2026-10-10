@@ -361,7 +361,10 @@ const ClientDashboard = ({
                 <div className="flex items-center gap-3">
                   <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full bg-[#E6F2EC] shrink-0 border-2 border-gold/40 shadow-sm overflow-hidden">
                     {(client.commercial.photo_url || client.commercial.photo) && !commercialPhotoError ? (
-                      <img src={client.commercial.photo_url || client.commercial.photo} alt={client.commercial.nom} className="absolute inset-0 h-full w-full rounded-full object-cover object-center" loading="lazy" decoding="async" onError={() => setCommercialPhotoError(true)} />
+                      <>
+                        <img src={client.commercial.photo_url || client.commercial.photo} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover object-center blur-md opacity-60" loading="lazy" decoding="async" />
+                        <img src={client.commercial.photo_url || client.commercial.photo} alt={client.commercial.nom} className="absolute inset-0 h-full w-full rounded-full object-contain object-center" loading="lazy" decoding="async" onError={() => setCommercialPhotoError(true)} />
+                      </>
                     ) : (
                       <span className="absolute inset-0 flex items-center justify-center text-base font-bold text-primary">{getInitials(client.commercial.nom)}</span>
                     )}
