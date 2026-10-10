@@ -44,7 +44,8 @@ export const MediasTab = ({ plantation }: { plantation: any }) => {
                     <img
                       src={url}
                       alt={label}
-                      loading={i < 6 ? "eager" : "lazy"}
+                      loading={i < 2 ? "eager" : "lazy"}
+                      decoding="async"
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
@@ -90,7 +91,7 @@ export const MediasTab = ({ plantation }: { plantation: any }) => {
             <img
               src={selected.url}
               alt={selected.commentaire || selected.description || selected.operation || "Média"}
-              className="max-h-[90vh] max-w-full w-auto rounded-xl object-contain"
+              className="max-h-[90vh] max-w-full w-auto rounded-xl object-contain" decoding="async"
               onClick={(e) => e.stopPropagation()}
             />
           ) : null}
