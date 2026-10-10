@@ -1,5 +1,5 @@
 import { addDays } from "date-fns";
-import { demoProfileUrl, demoMediaUrls } from './demoMedia';
+import { demoProfileUrl, demoMediaUrls, demoCommercial } from './demoMedia';
 
 export const DEMO_ACCESS_CODE = "2026";
 const d = (days:number) => addDays(new Date(), days).toISOString();
@@ -52,7 +52,7 @@ export const createDemoAccount = (telephone="+2250700000000") => {
     parcelle:{id:"DEMO-PARCELLE-001",id_unique:"PAR-DEMO-001",nom:"Parcelle démonstration — Gonaté",surface_totale_ha:2.5,village:"Gonaté",village_nom:"Gonaté — zone agricole démonstration",localisation_gps_lat:6.97,localisation_gps_lng:-6.22,statut:"actif"},
     parcelles:[],attributions:[],proprietaire:null,documents:plantation.documents,technique_interventions:steps,
     technique_progression:steps.map((e:any)=>({key:e.key,label:e.label,statut:e.statut,date:e.date_realisation,commentaire:e.commentaire})),
-    commercial:{nom:"KONAN AMENAN LARISSA",fonction:"Conseillère commerciale AgriCapital",telephone:"+2250713372539",whatsapp:"+2250713372539",email:"commercial@agricapital.ci",photo:"/images/larissa-konan.jpg",photo_url:"/images/larissa-konan.jpg"},
+    commercial:{...demoCommercial,photo:demoCommercial.photo_url},
     technicien:{nom:"KOUAMÉ PIERRE KOFFI",fonction:"Technicien terrain",telephone:"+2250700000001",photo_url:demoProfileUrl},
     techniciens:[],demo_messages:plantation.messages,
     demo_notifications:[
