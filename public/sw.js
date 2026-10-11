@@ -1,4 +1,4 @@
-const CACHE_NAME = "agricapital-client-shell-v10";
+const CACHE_NAME = "agricapital-client-shell-v11";
 const APP_ORIGIN = self.location.origin;
 
 self.addEventListener("install", (event) => {
