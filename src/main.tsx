@@ -41,9 +41,20 @@ class PortalErrorBoundary extends Component<{ children: ReactNode }, BoundarySta
 }
 
 // Une erreur de chargement de module ne doit jamais provoquer de rechargement forcé.
+// Recover once from stale/missing Vite chunks (often caused by an older PWA cache).
+// Prevent loops: a second failure is handled by the visible React error boundary.
 window.addEventListener("vite:preloadError", (event) => {
   event.preventDefault();
-  console.error("[AC_Clients] Un module n’a pas pu être chargé. La navigation reste active.", event);
+  console.error("[AC_Clients] Échec du chargement d’un module.", event);
+  const retryKey = "ac_portal_chunk_retry";
+  if (!sessionStorage.getItem(retryKey)) {
+    sessionStorage.setItem(retryKey, "1");
+    window.location.reload();
+  }
+});
+window.addEventListener("pageshow", () => {
+  // Clear the one-shot retry marker after a successful document load.
+  sessionStorage.removeItem("ac_portal_chunk_retry");
 });
 
 // Enregistre le Service Worker unique de la PWA : cache, Push et clics notification.
