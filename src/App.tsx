@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import ClientPortal from "./pages/ClientPortal";
 import NotFound from "./pages/NotFound";
 
@@ -23,11 +23,6 @@ const PortalNavigationGuard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const onSubmit = (event: Event) => {
-      const form = event.target;
-      if (form instanceof HTMLFormElement && form.dataset.nativeSubmit !== "true") event.preventDefault();
-    };
-
     const onClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const anchor = event.composedPath().find((node) => node instanceof HTMLAnchorElement) as HTMLAnchorElement | undefined;
@@ -43,10 +38,8 @@ const PortalNavigationGuard = () => {
       navigate(url.pathname + url.search + url.hash);
     };
 
-    document.addEventListener("submit", onSubmit, true);
     document.addEventListener("click", onClick, true);
     return () => {
-      document.removeEventListener("submit", onSubmit, true);
       document.removeEventListener("click", onClick, true);
     };
   }, [navigate]);
@@ -63,6 +56,7 @@ const App = () => (
         <PortalNavigationGuard />
         <Routes>
           <Route path="/" element={<ClientPortal />} />
+          <Route path="/démo" element={<Navigate to="/demo" replace />} />
           <Route path="/dashboard" element={<ClientPortal />} />
           <Route path="/demo" element={<ClientPortal />} />
           <Route path="/plantations" element={<ClientPortal />} />
