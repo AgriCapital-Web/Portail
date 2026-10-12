@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <meta name="description" content="Espace Client AgriCapital : suivez la progression de vos plantations de palmier à huile (étapes techniques, photos terrain, rapports, carte GPS), échangez avec votre technicien et payez vos échéances en toute sécurité.">
+    <meta name="description" content="Espace Client AgriCapital : suivez la progression de vos plantations de palmier à huile (étapes techniques, photos terrain, carte GPS), échangez avec votre technicien et payez vos échéances en toute sécurité.">
     <meta name="author" content="Inocent KOFFI — AgriCapital" />
     <meta name="keywords" content="AgriCapital, espace client AgriCapital, plantation de palmier à huile, PalmInvest, TerraPalm, PalmTerroir, Côte d'Ivoire, agriculture durable, investissement agricole, suivi plantation, paiements Mobile Money, rapports terrain, messagerie client">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
@@ -30,9 +30,11 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest-client.json" />
     
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="/images/logo-light.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/logo-light.png" />
+    <!-- Icônes AC_Clients : références explicites et versionnées pour éviter un ancien favicon en cache -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/logo-light.png?v=20261012" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/logo-light.png?v=20261012" />
+    <link rel="shortcut icon" href="/images/logo-light.png?v=20261012" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/logo-light.png?v=20261012" />
     
     <!-- Google Search Console verification (auto-generated via GSC connector) -->
     <meta name="google-site-verification" content="w0IFcNYKTjy1GgGr9H3IDceKjkgnC435MAT8o6mmSBI" />
@@ -57,9 +59,7 @@
     <meta name="twitter:image" content="https://client.agricapital.ci/images/logo-light.png" />
     <meta name="twitter:image:alt" content="Espace Client AgriCapital — suivi complet de plantations" />
     
-    <!-- Favicon officiel AgriCapital -->
-    <link rel="icon" type="image/png" href="/images/logo-light.png" />
-    <link rel="shortcut icon" type="image/png" href="/images/logo-light.png" />
+    <!-- Favicon officiel AgriCapital défini dans le bloc d'icônes versionné ci-dessus -->
     
     <!-- Structured Data JSON-LD -->
     <script type="application/ld+json">
