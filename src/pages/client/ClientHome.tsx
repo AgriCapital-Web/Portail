@@ -165,21 +165,21 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
         <meta name="description" content="Accédez à votre espace client AgriCapital." />
       </Helmet>
 
-      <main className="min-h-[100svh] bg-muted px-3 py-4 sm:px-6 sm:py-8 flex items-start sm:items-center">
-        <div className="mx-auto grid w-full max-w-3xl gap-4 sm:gap-6 lg:gap-10 items-stretch">
+      <main className="client-login-page min-h-[100svh] bg-muted px-3 py-2 sm:px-4 sm:py-[clamp(0.5rem,1.5vh,1rem)] flex items-center justify-center overflow-x-hidden">
+        <div className="mx-auto grid w-full max-w-3xl gap-2 sm:gap-3 lg:gap-4 items-center">
           <div className="flex items-center justify-center">
             <div className="w-full max-w-2xl min-w-0">
-              <div className="mb-5 sm:mb-7 flex justify-center">
-                <img src={logoWhiteBg} alt="AgriCapital" className="h-auto w-[clamp(280px,82vw,460px)] max-w-full object-contain mix-blend-multiply" />
+              <div className="mb-2 sm:mb-3 flex justify-center">
+                <img src={logoWhiteBg} alt="AgriCapital" className="client-login-logo h-auto w-[clamp(180px,34vw,340px)] max-w-full max-h-[clamp(72px,15vh,132px)] object-contain mix-blend-multiply" />
               </div>
 
-              <section className="flex flex-col justify-center rounded-2xl border border-border bg-card p-5 min-[420px]:p-6 sm:p-8 lg:p-10 shadow-xl min-w-0">
-                <div className="mb-6 sm:mb-8 text-center">
-                  <div className="mx-auto mb-4 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-xl bg-muted text-primary">
-                    {step === "phone" ? <ShieldCheck className="h-7 w-7 sm:h-8 sm:w-8" /> : <KeyRound className="h-7 w-7 sm:h-8 sm:w-8" />}
+              <section className="client-login-card flex flex-col justify-center rounded-2xl border border-border bg-card p-3 min-[420px]:p-4 sm:p-5 lg:p-6 shadow-xl min-w-0">
+                <div className="mb-3 sm:mb-4 text-center">
+                  <div className="mx-auto mb-2 flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-muted text-primary">
+                    {step === "phone" ? <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6" /> : <KeyRound className="h-5 w-5 sm:h-6 sm:w-6" />}
                   </div>
                   <h1 className="text-[clamp(1.55rem,5vw,2rem)] leading-tight font-bold text-primary">Votre espace client</h1>
-                  <p className="mt-3 text-[clamp(1rem,2.8vw,1.125rem)] leading-relaxed text-muted-foreground">
+                  <p className="mt-1.5 text-[clamp(0.875rem,1.5vw,1rem)] leading-snug text-muted-foreground">
                     {step === "phone"
                       ? "Connectez-vous avec le numéro utilisé lors de votre contractualisation."
                       : step === "setup"
@@ -189,15 +189,15 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                 </div>
 
                 {step !== "phone" && (
-                  <Button variant="ghost" type="button" onClick={reset} className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+                  <Button variant="ghost" type="button" onClick={reset} className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
                     <ArrowLeft className="h-4 w-4" /> Modifier le numéro
                   </Button>
                 )}
 
                 {step === "phone" && (
-                  <div className="space-y-4 sm:space-y-5">
+                  <div className="space-y-2.5 sm:space-y-3">
                     <div>
-                      <label className="mb-2 block text-[clamp(1rem,2.5vw,1.1rem)] font-semibold text-primary">Numéro de téléphone</label>
+                      <label className="mb-1 block text-[clamp(0.875rem,1.3vw,1rem)] font-semibold text-primary">Numéro de téléphone</label>
                       <Suspense fallback={<Input value={telephone || ""} onChange={(e) => setTelephone(e.target.value)} placeholder="+225 07 00 00 00 00" disabled={countriesLoading || countriesError} aria-label="Numéro de téléphone" className="phone-input" />}>
                         <PhoneNumberField
                           countries={countries.map((row) => row.code)}
@@ -209,17 +209,17 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                       </Suspense>
                       {countriesError && <p role="alert" className="mt-2 text-sm text-destructive">La liste des pays est indisponible. Réessayez dans quelques instants.</p>}
                     </div>
-                    <Button onClick={() => void handlePhoneContinue()} disabled={loading || countriesLoading || countriesError} className="min-h-14 h-auto py-4 w-full rounded-xl whitespace-normal text-[clamp(1rem,2.6vw,1.125rem)] leading-snug bg-primary text-primary-foreground hover:bg-muted">
+                    <Button onClick={() => void handlePhoneContinue()} disabled={loading || countriesLoading || countriesError} className="min-h-10 h-auto py-2.5 w-full rounded-xl whitespace-normal text-[clamp(0.875rem,1.3vw,1rem)] leading-snug bg-primary text-primary-foreground hover:bg-muted">
                       {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Chargement…</> : <>Vérifier le numéro <ArrowRight className="ml-2 h-5 w-5" /></>}
                     </Button>
-                    <Button type="button" variant="outline" onClick={handleDemoEnter} className="min-h-14 h-auto py-4 w-full rounded-xl whitespace-normal text-[clamp(1rem,2.6vw,1.125rem)] leading-snug">
+                    <Button type="button" variant="outline" onClick={handleDemoEnter} className="min-h-10 h-auto py-2.5 w-full rounded-xl whitespace-normal text-[clamp(0.875rem,1.3vw,1rem)] leading-snug">
                       <Sparkles className="mr-2 h-5 w-5" /> Accéder à la démonstration
                     </Button>
                   </div>
                 )}
 
                 {step === "setup" && (
-                  <div className="space-y-5">
+                  <div className="space-y-3">
                     <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2 font-semibold text-primary"><Sparkles className="h-4 w-4 text-primary" /> Première connexion</div>
                       <p className="mt-1">Choisissez un code à 4 chiffres pour vos prochaines connexions.</p>
@@ -245,15 +245,15 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                   </div>
                 )}
 
-                <div className="mt-6 sm:mt-7 border-t border-border pt-4 sm:pt-5 text-center">
-                  <p className="mb-3 text-sm text-muted-foreground">Besoin d'aide pour accéder à votre espace ?</p>
-                  <Button variant="outline" onClick={() => setSupportOpen(true)} className="h-11 rounded-lg border-border text-primary">
+                <div className="mt-3 sm:mt-4 border-t border-border pt-2.5 sm:pt-3 text-center">
+                  <p className="mb-2 text-xs sm:text-sm text-muted-foreground">Besoin d'aide pour accéder à votre espace ?</p>
+                  <Button variant="outline" onClick={() => setSupportOpen(true)} className="h-9 rounded-lg border-border text-primary">
                     <MessageCircle className="mr-2 h-4 w-4" /> Contacter AgriCapital
                   </Button>
                 </div>
               </section>
 
-              <p className="mt-4 flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5" /> Accès sécurisé à votre espace personnel
               </p>
             </div>
