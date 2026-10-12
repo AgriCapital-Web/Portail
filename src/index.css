@@ -276,31 +276,3 @@ h1, h2, h3, .font-display {
     border-radius: 0.35rem;
   }
 }
-
-/* Connexion AC_Clients : dimensions pilotées par la fenêtre, sans grands vides sur desktop. */
-@layer components {
-  .client-login-page { min-height: 100svh; }
-  .client-login-page > div { min-height: 0; }
-  .client-login-logo { display: block; }
-  .client-login-card { gap: 0; }
-  .client-login-card input { min-height: 2.75rem; }
-  @media (min-width: 768px) {
-    .client-login-page { padding-block: clamp(.35rem, 1.1vh, .75rem); }
-    .client-login-logo { max-height: clamp(58px, 12vh, 104px); width: clamp(180px, 22vw, 290px); }
-    .client-login-card { padding: clamp(.75rem, 1.8vh, 1.25rem); }
-    .client-login-card h1 { font-size: clamp(1.2rem, 2.4vh, 1.7rem); }
-    .client-login-card .text-muted-foreground { line-height: 1.35; }
-  }
-  @media (min-width: 768px) and (max-height: 820px) {
-    .client-login-page > div { gap: .35rem; }
-    .client-login-logo { max-height: clamp(48px, 9vh, 76px); width: clamp(160px, 18vw, 230px); }
-    .client-login-card > div:first-child { margin-bottom: .5rem; }
-    .client-login-card > div:first-child > div:first-child { width: 2.25rem; height: 2.25rem; margin-bottom: .35rem; }
-    .client-login-card > div:first-child > div:first-child svg { width: 1.15rem; height: 1.15rem; }
-    .client-login-card .phone-input { height: 2.75rem; }
-    .client-login-card .mt-3 { margin-top: .25rem; }
-  }
-  @media (max-height: 700px) {
-    .client-login-page { align-items: flex-start; }
-  }
-}
