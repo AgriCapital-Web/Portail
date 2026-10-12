@@ -30,9 +30,11 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest-client.json" />
     
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="/images/logo-light.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/logo-light.png" />
+    <!-- Icônes AC_Clients : références explicites et versionnées pour éviter un ancien favicon en cache -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/logo-light.png?v=20261012" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/logo-light.png?v=20261012" />
+    <link rel="shortcut icon" href="/images/logo-light.png?v=20261012" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/logo-light.png?v=20261012" />
     
     <!-- Google Search Console verification (auto-generated via GSC connector) -->
     <meta name="google-site-verification" content="w0IFcNYKTjy1GgGr9H3IDceKjkgnC435MAT8o6mmSBI" />
@@ -57,9 +59,7 @@
     <meta name="twitter:image" content="https://client.agricapital.ci/images/logo-light.png" />
     <meta name="twitter:image:alt" content="Espace Client AgriCapital — suivi complet de plantations" />
     
-    <!-- Favicon officiel AgriCapital -->
-    <link rel="icon" type="image/png" href="/images/logo-light.png" />
-    <link rel="shortcut icon" type="image/png" href="/images/logo-light.png" />
+    <!-- Favicon officiel AgriCapital défini dans le bloc d'icônes versionné ci-dessus -->
     
     <!-- Structured Data JSON-LD -->
     <script type="application/ld+json">
