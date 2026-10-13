@@ -83,9 +83,14 @@ const ClientDashboard = ({
 
   const fmt = (m: number) => formatCFA(m);
   const customPayment = client?.paiement_personnalise?.actif ? client.paiement_personnalise : null;
+  const beneficiaryClient = Boolean(client?.is_beneficiaire_particulier || client?.type_client === "beneficiaire_particulier");
+  const totalContract = Math.max(0, Number(client?.montant_total_contrat || 0));
+  const totalPaid = (paiements || []).filter((p:any)=>p.statut==="valide").reduce((sum:number,p:any)=>sum+Number(p.montant_paye ?? p.montant ?? 0),0);
+  const isSettled = !beneficiaryClient && (Boolean(client?.contrat_solde_at) || (totalContract > 0 && totalPaid >= totalContract));
+  const canPay = !beneficiaryClient && !isSettled && (Boolean(client?.offre_id) || Boolean(customPayment) || totalContract > 0);
   const validatedInitialPaid=(paiements||[]).filter((p:any)=>p.statut==="valide"&&p.type_paiement==="PI").reduce((s:number,p:any)=>s+Number(p.montant_paye||p.montant||0),0);
   const customInitialBalance=Number(customPayment?.paiement_initial?.solde ?? Math.max(0,Number(client?.paiement_initial_montant||0)-validatedInitialPaid));
-  const financialClient=!client?.is_beneficiaire_particulier&&client?.type_client!=="beneficiaire_particulier"&&Boolean(client?.offre_id);
+  const financialClient = !beneficiaryClient && (Boolean(client?.offre_id) || Boolean(customPayment) || totalContract > 0);
   const customMonthly = customPayment?.mensualite?.active === true ? customPayment.mensualite : null;
   const paymentState = client?.paiement_etat || {};
   const paymentArrears = Math.max(0, Number(paymentState?.mensualite?.montant_arriere || 0));
@@ -99,12 +104,16 @@ const ClientDashboard = ({
   const offreNom = isDemo ? 'Démonstration' : (client.offres?.nom || '—');
 
   const handlePayment = useCallback((options?: { prefillAmount?: number; prefillType?: 'arriere' | 'solde_paiement_initial' }) => {
+    if (beneficiaryClient || isSettled || !canPay) {
+      toast({ title: "Paiement indisponible", description: beneficiaryClient ? "Ce compte bénéficiaire ne dispose pas d’actions financières." : "Ce contrat est soldé ou ne permet pas de paiement." });
+      return;
+    }
     if (isDemo) {
       toast({ title: "Paiement indisponible en démonstration", description: "Aucun paiement réel ne peut être initié depuis ce mode." });
       return;
     }
     onPayment(options);
-  }, [isDemo, onPayment, toast]);
+  }, [beneficiaryClient, isSettled, canPay, isDemo, onPayment, toast]);
 
   const handleRefresh = useCallback(async () => {
     if (isDemo) {
@@ -194,7 +203,18 @@ const ClientDashboard = ({
           </CardContent>
         </Card>
 
-        {customPayment && (
+        {isSettled && !beneficiaryClient && <Card className="lg:col-span-12 overflow-hidden rounded-2xl border-2 border-[#FFD700] bg-gradient-to-r from-[#0B6B46] via-[#08754B] to-[#0B6B46] text-white shadow-lg">
+          <CardContent className="flex flex-col items-start gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="min-w-0">
+              <Badge className="agri-settled-badge mb-2 border border-[#FFD700] bg-[#FFD700] font-extrabold tracking-wide text-[#14532D]">CONTRAT SOLDÉ · AGRICAPITAL</Badge>
+              <h2 className="text-xl font-black sm:text-2xl">Félicitations, {client.nom_complet} !</h2>
+              <p className="mt-1 text-sm text-white/90">Votre contrat est entièrement réglé. Merci pour votre confiance et votre engagement avec AgriCapital.</p>
+            </div>
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-[#FFD700] bg-white/10 text-3xl" aria-hidden="true">✓</span>
+          </CardContent>
+        </Card>}
+
+        {customPayment && canPay && (
           <Card className="lg:col-span-7 border-[#CFE0D7] bg-white shadow-sm">
             <CardContent className="p-4 sm:p-5 text-[#24352D]">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -241,7 +261,7 @@ const ClientDashboard = ({
         </div>
 
         {/* Situation de paiement : uniquement pour les clients financiers */}
-        {financialClient && <Card className="card-brand rounded-2xl shadow-md lg:col-span-12">
+        {canPay && <Card className="card-brand rounded-2xl shadow-md lg:col-span-12">
           <CardContent className="p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div><p className="text-xs text-muted-foreground uppercase tracking-wide">Situation</p>
@@ -323,11 +343,11 @@ const ClientDashboard = ({
         )}
 
         {/* CTA Paiement */}
-        <Button onClick={() => handlePayment()} className="w-full h-14 lg:h-16 text-base font-bold gap-3 shadow-xl rounded-2xl btn-brand lg:col-span-6">
+        {canPay && <Button onClick={() => handlePayment()} className="w-full h-14 lg:h-16 text-base font-bold gap-3 shadow-xl rounded-2xl btn-brand lg:col-span-6">
           <CreditCard className="h-5 w-5" />
           <span className="flex-1 text-left">Effectuer un paiement</span>
           <ArrowRight className="h-5 w-5" />
-        </Button>
+        </Button>}
 
         {financialClient && <div className="lg:col-span-12"><TransactionStatusWidget paiements={paiements} limit={5} /></div>}
 

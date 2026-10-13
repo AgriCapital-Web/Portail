@@ -28,7 +28,7 @@ const calculateKkiapayAbsorption = (amount: number, method: ClientPaymentMethod,
   return { clientDebitAmount, widgetAmount, estimatedFees, feeRate, absorbedByAgriCapital: estimatedFees };
 };
 
-const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
+const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPaymentProps) => {
   const { toast } = useToast();
   const { openPayment, onSuccess, onFailed, onClose } = useKkiapay();
   const [typePaiement, setTypePaiement] = useState<"pi" | "mensualite">("mensualite");
@@ -47,6 +47,11 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
   const hasArrears = dbArrears > 0 || dbLateDays > 0;
   const activeHectares = Math.max(0, Number(dbFinancialState?.mensualite?.hectares_actifs || 0));
   const isDemoAccount = isLocalDemo(client);
+  const beneficiaryClient = Boolean(client?.is_beneficiaire_particulier || client?.type_client === "beneficiaire_particulier");
+  const totalContract = Math.max(0, Number(client?.montant_total_contrat || 0));
+  const totalPaid = (paiements || []).filter((p:any)=>p.statut==="valide").reduce((sum:number,p:any)=>sum+Number(p.montant_paye ?? p.montant ?? 0),0);
+  const isSettled = !beneficiaryClient && (Boolean(client?.contrat_solde_at) || (totalContract > 0 && totalPaid >= totalContract));
+  const financialAllowed = !beneficiaryClient && !isSettled && (Boolean(client?.offre_id) || Boolean(client?.paiement_personnalise?.actif) || totalContract > 0);
 
   useEffect(() => {
     if (selectedPlantation || plantations.length === 0) return;
@@ -65,6 +70,8 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
     return dbMonthlyBase * Number(paymentMode);
   }, [typePaiement, paymentMode, customAmount, dbMonthlyBase, dbInitialDue]);
 
+  const contractRemaining = Math.max(0, totalContract - totalPaid);
+  const paymentWillSettle = contractRemaining > 0 && montantTotal >= contractRemaining;
   const kkiapayFeeRate = Math.max(0, Number(client?.portal_config?.kkiapay_mobile_money_fee_rate || 0));
   const kkiapayPricing = useMemo(() => calculateKkiapayAbsorption(montantTotal, paymentMethod, kkiapayFeeRate), [montantTotal, paymentMethod, kkiapayFeeRate]);
   const isPiFree = typePaiement === "pi" && !!plantation && dbInitialDue <= 0;
@@ -78,7 +85,7 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
           body: { action: "confirm", portal_token: sessionStorage.getItem("agri_portal_access_token"), reference: context.reference, kkiapay_transaction_id: response.transactionId, client_debit_amount: context.pricing.clientDebitAmount, fee_absorption_rate: context.pricing.feeRate }
         });
         if (error || !data?.success) throw new Error(data?.error || error?.message || "Confirmation du paiement impossible.");
-        toast({ title: "✅ Paiement réussi", description: "Transaction " + response.transactionId + " validée." });
+        toast({ title: paymentWillSettle ? "🎉 Félicitations, contrat soldé !" : "✅ Paiement réussi", description: paymentWillSettle ? "Votre contrat est entièrement réglé. Merci de la part d’AgriCapital." : "Transaction " + response.transactionId + " validée." });
         setTimeout(onBack, 1800);
       } catch (e: any) {
         trackEvent({ level: "error", scope: "payment", message: "Confirmation serveur du paiement échouée", account: client?.id_unique || client?.telephone, context: { error: e?.message } });
@@ -87,10 +94,10 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
     });
     onFailed((error) => { toast({ variant: "destructive", title: "Paiement échoué", description: error.reason }); setLoading(false); });
     onClose(() => setLoading(false));
-  }, [client?.id_unique, client?.telephone, onBack, onFailed, onSuccess, onClose, toast]);
+  }, [client?.id_unique, client?.telephone, paymentWillSettle, onBack, onFailed, onSuccess, onClose, toast]);
 
   const handleActivationGratuite = async () => {
-    if (!plantation) return;
+    if (!financialAllowed || !plantation) return;
     setLoading(true);
     const reference = "PI0-" + Date.now() + "-" + Math.random().toString(36).slice(2, 9).toUpperCase();
     try {
@@ -119,6 +126,10 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
   };
 
   const handleSubmit = async () => {
+    if (!financialAllowed) {
+      toast({variant:"destructive",title:"Paiement indisponible",description:beneficiaryClient ? "Ce compte bénéficiaire ne dispose pas d’actions financières." : "Ce contrat est déjà soldé ou ne permet pas de paiement."});
+      return;
+    }
     if (isDemoAccount) {
       if (montantTotal > 0 && plantation) return handleDemoPayment();
       return;
@@ -166,6 +177,20 @@ const ClientPayment = ({ client, plantations, onBack }: ClientPaymentProps) => {
     { value: "1", label: "1 mois" }, { value: "3", label: "3 mois" }, { value: "6", label: "6 mois" }, { value: "9", label: "9 mois" },
     { value: "12", label: "12 mois" }, { value: "custom", label: "Montant personnalisé" }
   ];
+
+  if (!financialAllowed) {
+    return <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-lg rounded-2xl border border-[#22A45D]/30 shadow-lg">
+        <CardContent className="space-y-4 p-6 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#22A45D]/10 text-2xl text-[#22A45D]">{isSettled ? "✓" : "🔒"}</div>
+          <h2 className="text-xl font-black text-[#0B6B46]">{isSettled ? "Contrat entièrement soldé" : "Espace bénéficiaire"}</h2>
+          <p className="text-sm text-muted-foreground">{isSettled ? "Félicitations ! Aucune action de paiement n’est nécessaire pour ce contrat." : "Les opérations financières ne sont pas disponibles pour ce compte."}</p>
+          {isSettled && <Badge className="agri-settled-badge mx-auto border border-[#FFD700] bg-[#FFD700] text-[#14532D]">CONTRAT SOLDÉ · AGRICAPITAL</Badge>}
+          <Button onClick={onBack} className="w-full bg-[#0B6B46] text-white hover:bg-[#075638]">Retour à mon espace</Button>
+        </CardContent>
+      </Card>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

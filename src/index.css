@@ -304,3 +304,11 @@ h1, h2, h3, .font-display {
     .client-login-page { align-items: flex-start; }
   }
 }
+
+
+@keyframes agri-settled-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.25), 0 0 0 0 rgba(34, 164, 93, 0.15); transform: translateY(0); }
+  50% { box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.25), 0 0 18px 3px rgba(34, 164, 93, 0.3); transform: translateY(-1px); }
+}
+.agri-settled-badge { animation: agri-settled-glow 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .agri-settled-badge { animation: none; } }
