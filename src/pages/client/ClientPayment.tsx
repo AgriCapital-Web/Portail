@@ -52,8 +52,6 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
   const totalPaid = (paiements || []).filter((p:any)=>p.statut==="valide").reduce((sum:number,p:any)=>sum+Number(p.montant_paye ?? p.montant ?? 0),0);
   const isSettled = !beneficiaryClient && (Boolean(client?.contrat_solde_at) || (totalContract > 0 && totalPaid >= totalContract));
   const financialAllowed = !beneficiaryClient && !isSettled && (Boolean(client?.offre_id) || Boolean(client?.paiement_personnalise?.actif) || totalContract > 0);
-  const contractRemaining = Math.max(0, totalContract - totalPaid);
-  const paymentWillSettle = contractRemaining > 0 && montantTotal >= contractRemaining;
 
   useEffect(() => {
     if (selectedPlantation || plantations.length === 0) return;
@@ -72,6 +70,8 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
     return dbMonthlyBase * Number(paymentMode);
   }, [typePaiement, paymentMode, customAmount, dbMonthlyBase, dbInitialDue]);
 
+  const contractRemaining = Math.max(0, totalContract - totalPaid);
+  const paymentWillSettle = contractRemaining > 0 && montantTotal >= contractRemaining;
   const kkiapayFeeRate = Math.max(0, Number(client?.portal_config?.kkiapay_mobile_money_fee_rate || 0));
   const kkiapayPricing = useMemo(() => calculateKkiapayAbsorption(montantTotal, paymentMethod, kkiapayFeeRate), [montantTotal, paymentMethod, kkiapayFeeRate]);
   const isPiFree = typePaiement === "pi" && !!plantation && dbInitialDue <= 0;
