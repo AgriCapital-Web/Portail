@@ -85,7 +85,6 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
           body: { action: "confirm", portal_token: sessionStorage.getItem("agri_portal_access_token"), reference: context.reference, kkiapay_transaction_id: response.transactionId, client_debit_amount: context.pricing.clientDebitAmount, fee_absorption_rate: context.pricing.feeRate }
         });
         if (error || !data?.success) throw new Error(data?.error || error?.message || "Confirmation du paiement impossible.");
-        if (paymentWillSettle) sessionStorage.setItem("agri_contract_settled_celebration", "1");
         toast({ title: paymentWillSettle ? "🎉 Félicitations, contrat soldé !" : "✅ Paiement réussi", description: paymentWillSettle ? "Votre contrat est entièrement réglé. Merci de la part d’AgriCapital." : "Transaction " + response.transactionId + " validée." });
         setTimeout(onBack, 1800);
       } catch (e: any) {
