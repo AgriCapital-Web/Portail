@@ -4,10 +4,17 @@ import { EmptyState } from "../EmptyState";
 import { FileText, Download } from "lucide-react";
 
 export const DocumentsTab = ({ plantation, client }: { plantation: any; client: any }) => {
-  const docs: any[] = [
+  const source: any[] = [
     ...(Array.isArray(client?.documents) ? client.documents : []),
     ...(Array.isArray(plantation?.documents) ? plantation.documents : []),
   ];
+  const seen = new Set<string>();
+  const docs = source.filter((doc) => {
+    const key = String(doc?.id || doc?.url || String(doc?.nom || "") + ":" + String(doc?.type_document || ""));
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
   if (docs.length === 0) {
     return <EmptyState icon={FileText} title="Aucun document disponible" description="Votre contrat, les annexes, plans topographiques et plans de plantation apparaîtront ici dès leur mise en ligne." />;
   }

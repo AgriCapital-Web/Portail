@@ -312,3 +312,23 @@ h1, h2, h3, .font-display {
 }
 .agri-settled-badge { animation: agri-settled-glow 2.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .agri-settled-badge { animation: none; } }
+
+
+/* Shared portal surfaces stay responsive and respect reduced-motion preferences. */
+@layer components {
+  .portal-shell { background: hsl(var(--muted) / 0.5); color: hsl(var(--foreground)); }
+  .portal-header { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .portal-logo { background: hsl(var(--card)); }
+  .plantation-content .rounded-2xl { border-radius: var(--radius); }
+  .plantation-content [class~="text-[10px]"],
+  .plantation-content [class~="text-[9px]"],
+  .plantation-content [class~="text-[8px]"] { font-size: 0.75rem; line-height: 1.4; }
+  .plantation-content [class~="text-[11px]"] { font-size: 0.8125rem; line-height: 1.5; }
+  .plantation-content [role="tablist"] { max-width: 100%; }
+  .plantation-content [role="tabpanel"] { min-width: 0; }
+  .plantation-content button { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

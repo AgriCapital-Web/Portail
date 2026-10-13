@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Check, Circle, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { usePortalReferences } from "@/hooks/usePortalReferences";
 
 const normalizeStatus = (value: any) => {
   const s = String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -12,17 +12,12 @@ const normalizeStatus = (value: any) => {
   return "pending";
 };
 
-export const ProgressionTab = ({ plantation }: { plantation: any; client: any }) => {
-  const [references, setReferences] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      const { data, error } = await (supabase as any).from("referentiels_systeme").select("code,libelle,ordre,metadata").eq("categorie","etape_plantation").eq("actif",true).order("ordre");
-      if (active) { setReferences(error ? [] : (data || [])); setLoading(false); }
-    })();
-    return () => { active = false; };
-  }, []);
+export const ProgressionTab = ({ plantation, client }: { plantation: any; client: any }) => {
+  const isDemo = client?.demo === true || sessionStorage.getItem("agri_demo") === "1";
+  const { data: crmReferences = [], isLoading: loading, error } = usePortalReferences("etape_plantation", !isDemo);
+  const references = isDemo
+    ? (plantation?.etapes || []).map((step: any, index: number) => ({ code: step.key || step.type, libelle: step.label, ordre: index, metadata: {} }))
+    : crmReferences;
   const source: any[] = plantation?.etapes?.length ? plantation.etapes : plantation?.interventions || [];
   const etapes = useMemo(() => references.map((ref:any) => {
     const aliases = ref.code === "mise_en_terre" ? ["mise_en_terre","planting"] : [ref.code];
@@ -35,6 +30,7 @@ export const ProgressionTab = ({ plantation }: { plantation: any; client: any })
   const pct=required.length?Math.round(completed/required.length*100):0;
   const firstPending=etapes.findIndex(e=>e.statut!=="termine");
   if(loading) return <div className="flex min-h-[220px] items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-primary"/></div>;
+  if(error || references.length === 0) return <p className="py-8 text-sm text-muted-foreground">Étapes techniques indisponibles pour le moment.</p>;
   return <div className="space-y-3">
     <Card className="card-brand rounded-2xl"><CardContent className="p-4">
       <div className="flex items-center justify-between mb-2"><span className="font-semibold text-base">Progression globale</span><span className="text-xl font-bold text-primary">{pct} %</span></div>

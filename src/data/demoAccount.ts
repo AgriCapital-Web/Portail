@@ -46,7 +46,8 @@ export const createDemoAccount = (telephone="+2250700000000") => {
     telephone,telephone_local:telephone.replace(/^\+\d{1,3}/,""),telephone_indicatif:telephone.match(/^\+\d{1,3}/)?.[0]||"+225",
     email:"demo@agricapital.ci",localite:"GONATÉ",type_client:"client_officiel",statut:"actif",statut_global:"a_jour",compte_actif:true,demo:true,_demo:true,
     portal_primary_role:"client",offre_id:"DEMO-OFFRE-PALMTERROIR",prochaine_echeance:d(10),
-    paiement_etat:{paiement_initial:{solde:0},mensualite:{montant:12500,montant_a_payer:12500,montant_arriere:0,jours_retard:0,hectares_actifs:2.5}},
+    paiement_initial_montant:250000,
+    paiement_etat:{paiement_initial:{montant:250000,paye:250000,solde:0},mensualite:{montant:12500,montant_a_payer:12500,montant_arriere:0,jours_retard:0,hectares_actifs:2.5}},
     total_hectares:2.5,nombre_plantations:1,phase_actuelle:"reprise",famille_offre:"PalmTerroir",formule_code:"PALMTERROIR",formule_nom:"PalmTerroir",
     offres:{nom:"PalmTerroir",formule_nom:"PalmTerroir"},photo_profil_url:demoProfileUrl,numero_contrat:"DEMO-AC-2026",
     parcelle:{id:"DEMO-PARCELLE-001",id_unique:"PAR-DEMO-001",nom:"Parcelle démonstration — Gonaté",surface_totale_ha:2.5,village:"Gonaté",village_nom:"Gonaté — zone agricole démonstration",localisation_gps_lat:6.97,localisation_gps_lng:-6.22,statut:"actif"},
@@ -61,5 +62,9 @@ export const createDemoAccount = (telephone="+2250700000000") => {
       {id:"DEMO-N3",title:"Nouveau message",message:"Votre technicien vous a écrit.",created_at:d(-1),read:false,data:{plantation_id:plantationId}}
     ]
   };
-  return {demo_code:DEMO_ACCESS_CODE,client,plantations:[plantation],paiements:[]};
+  const paiements:any[]=[
+    {id:"DEMO-P1",reference:"DEMO-PI-001",type_paiement:"PI",montant:250000,montant_paye:250000,statut:"valide",mode_paiement:"Mobile Money",plantation_id:plantationId,date_paiement:d(-20),created_at:d(-20)},
+    ...[1,2].map(n=>({id:"DEMO-P"+(n+1),reference:"DEMO-MENS-00"+n,type_paiement:"MENSUALITE",montant:12500,montant_paye:12500,statut:"valide",mode_paiement:"Mobile Money",plantation_id:plantationId,date_paiement:d(-20+n*10),created_at:d(-20+n*10)}))
+  ];
+  return {demo_code:DEMO_ACCESS_CODE,client,plantations:[plantation],paiements};
 };

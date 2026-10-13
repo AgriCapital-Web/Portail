@@ -18,10 +18,13 @@ const MapViewportFix = () => {
 };
 
 export const MapTab = ({ plantation }: { plantation: any }) => {
-  const lat = Number(plantation?.latitude ?? plantation?.localisation_gps_lat);
-  const lng = Number(plantation?.longitude ?? plantation?.localisation_gps_lng);
+  const rawLat = plantation?.latitude ?? plantation?.localisation_gps_lat;
+  const rawLng = plantation?.longitude ?? plantation?.localisation_gps_lng;
+  const lat = Number(rawLat);
+  const lng = Number(rawLng);
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+  if (rawLat == null || rawLng == null || String(rawLat).trim() === "" || String(rawLng).trim() === "" ||
+      !Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
     return (
       <EmptyState
         icon={MapPin}
