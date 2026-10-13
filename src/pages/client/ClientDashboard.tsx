@@ -86,7 +86,22 @@ const ClientDashboard = ({
   const beneficiaryClient = Boolean(client?.is_beneficiaire_particulier || client?.type_client === "beneficiaire_particulier");
   const totalContract = Math.max(0, Number(client?.montant_total_contrat || 0));
   const totalPaid = (paiements || []).filter((p:any)=>p.statut==="valide").reduce((sum:number,p:any)=>sum+Number(p.montant_paye ?? p.montant ?? 0),0);
-  const isSettled = !beneficiaryClient && (Boolean(client?.contrat_solde_at) || (totalContract > 0 && totalPaid >= totalContract));
+  const serverSettled = Boolean(client?.contrat_solde_at) || (totalContract > 0 && totalPaid >= totalContract);
+  const [localSettled, setLocalSettled] = useState(() => {
+    try { return sessionStorage.getItem("agri_contrat_solde_confirmed") === String(client?.id); } catch { return false; }
+  });
+  useEffect(() => {
+    let pendingClient: string | null = null;
+    try { pendingClient = sessionStorage.getItem("agri_contrat_solde_confirmed"); } catch { /* storage can be unavailable */ }
+    if (pendingClient !== String(client?.id)) { setLocalSettled(false); return; }
+    if (serverSettled) {
+      try { sessionStorage.removeItem("agri_contrat_solde_confirmed"); } catch { /* storage can be unavailable */ }
+      setLocalSettled(false);
+    } else {
+      setLocalSettled(true);
+    }
+  }, [client?.id, serverSettled]);
+  const isSettled = !beneficiaryClient && (serverSettled || localSettled);
   const canPay = !beneficiaryClient && !isSettled && (Boolean(client?.offre_id) || Boolean(customPayment) || totalContract > 0);
   const validatedInitialPaid=(paiements||[]).filter((p:any)=>p.statut==="valide"&&p.type_paiement==="PI").reduce((s:number,p:any)=>s+Number(p.montant_paye||p.montant||0),0);
   const customInitialBalance=Number(customPayment?.paiement_initial?.solde ?? Math.max(0,Number(client?.paiement_initial_montant||0)-validatedInitialPaid));

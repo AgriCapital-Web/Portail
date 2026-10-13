@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 type PrivateView = "dashboard" | "payment" | "plantation-hub";
 const SESSION_KEYS = [
   "agri_client","agri_plantations","agri_paiements",
-  "agri_portal_access_token","agri_demo","agri_demo_token","agri_demo_code",
+  "agri_portal_access_token","agri_demo","agri_demo_token","agri_demo_code","agri_contrat_solde_confirmed",
 ] as const;
 
 const readJson = <T,>(key: string): T | null => {
