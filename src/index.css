@@ -507,40 +507,4 @@ h1, h2, h3, .font-display {
 }
 
 
-/* AC_Clients desktop layout restoration:
-   keep the original centered, compact single-column login composition.
-   Mobile sizing below 768px remains intentionally unchanged. */
-@media (min-width: 768px) {
-  .client-login-page {
-    padding: .5rem 1rem;
-    align-items: center;
-  }
-  .client-login-page > div {
-    max-width: 48rem !important;
-    gap: .75rem;
-  }
-  .client-login-logo {
-    width: clamp(240px, 52vw, 420px) !important;
-    max-width: 100% !important;
-    max-height: clamp(100px, 20vh, 170px) !important;
-  }
-  .client-login-card {
-    padding: 1.25rem 1.5rem !important;
-    gap: .75rem;
-  }
-  .client-login-card h1 {
-    font-size: clamp(1.55rem, 3vw, 2rem) !important;
-  }
-  .client-login-card p,
-  .client-login-card label,
-  .client-login-card .text-sm,
-  .client-login-card .text-xs {
-    font-size: 1rem;
-  }
-  .client-login-card button,
-  .client-login-card [role="button"] {
-    min-height: 2.75rem;
-    padding: .65rem 1rem;
-    font-size: 1rem;
-  }
-}
+
