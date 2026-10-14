@@ -181,14 +181,23 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
         <meta name="description" content="Accédez à votre espace client AgriCapital." />
       </Helmet>
 
-      <main className="client-login-page min-h-[100svh] bg-muted px-3 py-2 sm:px-4 sm:py-[clamp(0.5rem,1.5vh,1rem)] flex items-center justify-center overflow-x-hidden">
-        <div className="mx-auto grid w-full max-w-3xl gap-2 sm:gap-3 lg:gap-4 items-center">
-          <div className="flex items-center justify-center">
-            <div className="w-full max-w-2xl min-w-0">
-              <div className="mb-2 sm:mb-3 flex justify-center">
+      <main className="client-login-page min-h-[100svh] w-full bg-background overflow-x-hidden">
+        <div className="min-h-[100svh] w-full grid grid-cols-1 md:grid-cols-[52%_48%]">
+          <aside className="relative hidden md:flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[#00643C] px-8 py-10 text-white">
+            <div aria-hidden="true" className="pointer-events-none absolute left-[11%] top-[12%] h-40 w-40 rounded-full border border-white/5" />
+            <div aria-hidden="true" className="pointer-events-none absolute bottom-[15%] right-[9%] h-64 w-64 rounded-full border border-white/5" />
+            <div className="relative z-10 flex w-full max-w-xl flex-col items-center text-center">
+              <img src={logoWhiteBg} alt="AgriCapital" className="client-login-logo h-auto w-[clamp(320px,42vw,540px)] max-w-full max-h-[clamp(150px,25vh,240px)] object-contain" />
+              <p className="mt-3 text-[clamp(1.25rem,2.5vw,2rem)] font-medium leading-tight text-[#F59E0B]">Investir la terre. Cultiver l’avenir.</p>
+              <p className="mt-28 text-xl font-semibold">Espace client</p>
+            </div>
+            <p className="absolute bottom-6 left-4 right-4 text-center text-xs text-white/70">© 2026 AgriCapital - Investir la terre. Cultiver l’avenir.</p>
+          </aside>
+          <section className="flex min-h-[100svh] items-center justify-center bg-background px-4 py-6 sm:px-6 md:px-10 lg:px-14">
+            <div className="w-full max-w-xl min-w-0">
+              <div className="mb-4 flex justify-center md:hidden">
                 <img src={logoWhiteBg} alt="AgriCapital" className="client-login-logo h-auto w-[clamp(240px,52vw,420px)] max-w-full max-h-[clamp(100px,20vh,170px)] object-contain mix-blend-multiply" />
               </div>
-
               <section className="client-login-card flex flex-col justify-center rounded-2xl border border-border bg-card p-3 min-[420px]:p-4 sm:p-5 lg:p-6 shadow-xl min-w-0">
                 <div className="mb-3 sm:mb-4 text-center">
                   <div className="mx-auto mb-2 flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-muted text-primary">
@@ -268,12 +277,11 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                   </Button>
                 </div>
               </section>
-
-              <p className="mt-2 flex items-center justify-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5" /> Accès sécurisé à votre espace personnel
               </p>
             </div>
-          </div>
+          </section>
         </div>
       </main>
 
