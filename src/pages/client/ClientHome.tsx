@@ -170,7 +170,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
           <div className="flex items-center justify-center">
             <div className="w-full max-w-2xl min-w-0">
               <div className="mb-2 sm:mb-3 flex justify-center">
-                <img src={logoWhiteBg} alt="AgriCapital" className="client-login-logo h-auto w-[clamp(180px,34vw,340px)] max-w-full max-h-[clamp(72px,15vh,132px)] object-contain mix-blend-multiply" />
+                <img src={logoWhiteBg} alt="AgriCapital" className="client-login-logo h-auto w-[clamp(240px,52vw,420px)] max-w-full max-h-[clamp(100px,20vh,170px)] object-contain mix-blend-multiply" />
               </div>
 
               <section className="client-login-card flex flex-col justify-center rounded-2xl border border-border bg-card p-3 min-[420px]:p-4 sm:p-5 lg:p-6 shadow-xl min-w-0">
