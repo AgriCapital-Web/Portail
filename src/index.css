@@ -457,3 +457,70 @@ h1, h2, h3, .font-display {
   .client-login-card button,
   .client-login-card [role="button"] { min-height: 3.5rem; font-size: clamp(1rem, 1.05vw, 1.125rem); }
 }
+
+
+/* AC_Clients mobile login — enlarge the complete interface for easier reading and tapping. */
+@media (max-width: 767px) {
+  .client-login-page {
+    padding: 1rem .9rem 1.25rem;
+    align-items: flex-start;
+  }
+  .client-login-page > div {
+    max-width: 100%;
+    gap: 1.1rem;
+  }
+  .client-login-logo {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: clamp(165px, 25svh, 215px) !important;
+  }
+  .client-login-card {
+    padding: 1.25rem !important;
+    gap: 1rem;
+    border-radius: 1.25rem;
+  }
+  .client-login-card h1 {
+    font-size: clamp(1.65rem, 6vw, 1.95rem) !important;
+    line-height: 1.25 !important;
+  }
+  .client-login-card p,
+  .client-login-card label,
+  .client-login-card .text-sm,
+  .client-login-card .text-xs {
+    font-size: 1.05rem !important;
+    line-height: 1.55;
+  }
+  .client-login-card input,
+  .client-login-card select,
+  .client-login-card textarea,
+  .client-login-card .phone-input {
+    min-height: 3.9rem !important;
+    font-size: 1.1rem !important;
+  }
+  .client-login-card .phone-input { height: 3.9rem !important; }
+  .client-login-card .phone-input .PhoneInputCountry { padding-inline: .8rem; }
+  .client-login-card button,
+  .client-login-card [role="button"] {
+    min-height: 3.8rem;
+    padding: .95rem 1rem;
+    font-size: 1.05rem;
+    line-height: 1.4;
+  }
+  .client-login-card input.text-center {
+    min-height: 4rem !important;
+    font-size: 1.6rem !important;
+  }
+  .client-login-card > div:first-child > div:first-child {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  .client-login-card > div:first-child > div:first-child svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}
+@media (max-width: 380px) {
+  .client-login-page { padding-inline: .65rem; }
+  .client-login-card { padding: 1rem !important; }
+  .client-login-logo { max-height: 185px !important; }
+}
