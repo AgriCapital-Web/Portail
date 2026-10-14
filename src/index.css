@@ -440,6 +440,43 @@ h1, h2, h3, .font-display {
 }
 
 
+/* Desktop split-screen must use the entire viewport; do not constrain the grid to the old 52rem form width. */
+@media (min-width: 768px) {
+  .client-login-page {
+    width: 100%;
+    min-height: 100svh;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  .client-login-page > div {
+    width: 100%;
+    max-width: none !important;
+    min-height: 100svh;
+    grid-template-columns: 52% 48%;
+    gap: 0;
+  }
+  .client-login-page > div > aside {
+    width: 100%;
+    min-width: 0;
+  }
+  .client-login-page > div > section {
+    width: 100%;
+    min-width: 0;
+    padding-inline: clamp(2rem, 5vw, 5rem);
+  }
+  .client-login-page > div > section > div {
+    width: 100%;
+    max-width: 34rem;
+  }
+  .client-login-card {
+    width: 100%;
+    padding: clamp(1.5rem, 2vw, 2.25rem) !important;
+  }
+  .client-login-card h1 {
+    font-size: clamp(1.8rem, 2.2vw, 2.4rem) !important;
+  }
+}
+
 /* AC_Clients mobile login — enlarge the complete interface for easier reading and tapping. */
 @media (max-width: 767px) {
   .client-login-page {
