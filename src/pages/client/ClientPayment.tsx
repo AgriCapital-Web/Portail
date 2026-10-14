@@ -22,7 +22,7 @@ const calculateKkiapayAbsorption = (amount: number, method: ClientPaymentMethod,
   const theoreticalAmount = Math.max(0, Math.round(clientDebitAmount / (1 + Math.max(0, feeRate))));
   let widgetAmount = theoreticalAmount;
   for (let candidate = Math.max(0, theoreticalAmount - 20); candidate <= theoreticalAmount + 20; candidate += 1) {
-    if (candidate + Math.ceil(candidate * Math.max(0, candidate * feeRate)) === clientDebitAmount) { widgetAmount = candidate; break; }
+    if (candidate + Math.ceil(candidate * Math.max(0, feeRate)) === clientDebitAmount) { widgetAmount = candidate; break; }
   }
   const estimatedFees = Math.max(0, clientDebitAmount - widgetAmount);
   return { clientDebitAmount, widgetAmount, estimatedFees, feeRate, absorbedByAgriCapital: estimatedFees };
