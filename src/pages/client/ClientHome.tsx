@@ -101,6 +101,22 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
       const { data, error } = await supabase.functions.invoke("portal-access", {
         body: { action: "setup", telephone: cleanPhone(), code: accessCode, confirm_code: confirmCode },
       });
+
+      // Un essai précédent peut avoir enregistré le code avant qu'une étape secondaire échoue.
+      // En cas de conflit 409, ne pas laisser le client bloqué sur l'écran « première connexion » :
+      // vérifier le code saisi via le flux de connexion normal, sans contourner la vérification.
+      if (error?.context?.status === 409 || (!error && data?.needs_access_code_setup === false && !data?.success)) {
+        const loginResult = await supabase.functions.invoke("portal-access", {
+          body: { action: "login", telephone: cleanPhone(), code: accessCode },
+        });
+        if (!loginResult.error && loginResult.data?.success && loginResult.data?.access_token) {
+          await loadRealClient(loginResult.data.access_token);
+          sessionStorage.setItem("agri_access_code_saved", "1");
+          return;
+        }
+        throw new Error("Un code d'accès existe déjà pour ce compte. Vérifiez le code saisi ou contactez AgriCapital pour réinitialiser votre accès.");
+      }
+
       if (error || !data?.success) throw new Error(data?.error || error?.message || "Enregistrement impossible.");
       await loadRealClient(data.access_token);
       sessionStorage.setItem("agri_access_code_saved", "1");
