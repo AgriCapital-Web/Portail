@@ -438,3 +438,22 @@ h1, h2, h3, .font-display {
   .client-login-logo { max-height: 110px !important; }
   .client-login-card { padding-block: .9rem !important; }
 }
+
+
+/* AC_Clients desktop: keep the logo, heading and form comfortably readable. */
+@media (min-width: 1024px) {
+  .client-login-page { padding: clamp(1.5rem, 3vh, 2.5rem); }
+  .client-login-page > div { max-width: 56rem !important; gap: clamp(1rem, 2.5vh, 1.5rem); }
+  .client-login-logo {
+    width: clamp(460px, 42vw, 640px) !important;
+    max-height: clamp(160px, 25vh, 240px) !important;
+  }
+  .client-login-card { padding: clamp(1.5rem, 2.6vw, 2.5rem) !important; }
+  .client-login-card h1 { font-size: clamp(2rem, 2.3vw, 2.5rem) !important; }
+  .client-login-card p,
+  .client-login-card label,
+  .client-login-card .text-sm,
+  .client-login-card .text-xs { font-size: clamp(1rem, 1.1vw, 1.125rem); }
+  .client-login-card button,
+  .client-login-card [role="button"] { min-height: 3.5rem; font-size: clamp(1rem, 1.05vw, 1.125rem); }
+}
