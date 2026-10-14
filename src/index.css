@@ -277,23 +277,36 @@ h1, h2, h3, .font-display {
   }
 }
 
-/* Connexion AC_Clients : dimensions pilotées par la fenêtre, sans grands vides sur desktop. */
+/* Connexion AC_Clients : logo réellement lisible sur mobile et tablette. */
 @layer components {
   .client-login-page { min-height: 100svh; }
   .client-login-page > div { min-height: 0; }
-  .client-login-logo { display: block; }
+  .client-login-logo {
+    display: block;
+    width: clamp(320px, 88vw, 460px) !important;
+    max-width: 100%;
+    max-height: clamp(110px, 22vh, 190px) !important;
+    height: auto;
+    object-fit: contain;
+  }
   .client-login-card { gap: 0; }
   .client-login-card input { min-height: 2.75rem; }
   @media (min-width: 768px) {
     .client-login-page { padding-block: clamp(.35rem, 1.1vh, .75rem); }
-    .client-login-logo { max-height: clamp(58px, 12vh, 104px); width: clamp(180px, 22vw, 290px); }
+    .client-login-logo {
+      width: clamp(320px, 30vw, 440px) !important;
+      max-height: clamp(90px, 14vh, 150px) !important;
+    }
     .client-login-card { padding: clamp(.75rem, 1.8vh, 1.25rem); }
     .client-login-card h1 { font-size: clamp(1.2rem, 2.4vh, 1.7rem); }
     .client-login-card .text-muted-foreground { line-height: 1.35; }
   }
   @media (min-width: 768px) and (max-height: 820px) {
     .client-login-page > div { gap: .35rem; }
-    .client-login-logo { max-height: clamp(48px, 9vh, 76px); width: clamp(160px, 18vw, 230px); }
+    .client-login-logo {
+      width: clamp(300px, 26vw, 380px) !important;
+      max-height: 100px !important;
+    }
     .client-login-card > div:first-child { margin-bottom: .5rem; }
     .client-login-card > div:first-child > div:first-child { width: 2.25rem; height: 2.25rem; margin-bottom: .35rem; }
     .client-login-card > div:first-child > div:first-child svg { width: 1.15rem; height: 1.15rem; }
