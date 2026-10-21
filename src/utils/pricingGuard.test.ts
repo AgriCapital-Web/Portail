@@ -10,13 +10,12 @@ beforeEach(() => __resetPricingGuardForTests());
 
 const goodOffer = {
   code: "PALMINVEST",
-  montant_depot_initial_par_ha: 90700,
-  montant_total_par_ha: 4384700,
-  duree_paiement_mois: 35,
+  montant_pi_par_ha: 90700,
+  montant_total_par_ha: 2465200,
+  mensualite_par_ha: 59362.5,
+  duree_paiement_mois: 40,
   tranches_paiement: [
-    { annee: 1, mois: 12, mensualite_par_ha: 60000 },
-    { annee: 2, mois: 12, mensualite_par_ha: 120000 },
-    { annee: 3, mois: 11, mensualite_par_ha: 194000 },
+    { type: "mensualite_unique", mois: 40, mois_debut: 1, mois_fin: 40, mensualite_par_ha: 59362.5, total_periode_par_ha: 2374500 },
   ],
 };
 
