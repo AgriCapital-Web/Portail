@@ -9,78 +9,74 @@ import {
 import { validateOfferPricing } from "./pricingGuard";
 
 const palmOffer = {
-  code: "PALMINVEST+",
+  code: "PALMINVEST",
   montant_pi_par_ha: 90700,
   montant_total_par_ha: 2465200,
-  mensualite_par_ha: 83800,
+  mensualite_par_ha: 59362.5,
   duree_paiement_mois: 40,
   tranches_paiement: [
-    { type: "paiement_initial", mois: 1, montant: 90700, mensualite_par_ha: 0 },
-    { annee: 1, mois: 11, mois_debut: 2, mois_fin: 12, mensualite_par_ha: 31900 },
-    { annee: 2, mois: 12, mois_debut: 13, mois_fin: 24, mensualite_par_ha: 56900 },
-    { annee: 3, mois: 16, mois_debut: 25, mois_fin: 40, mensualite_par_ha: 83800 },
+    { type: "mensualite_unique", mois: 40, mois_debut: 1, mois_fin: 40, mensualite_par_ha: 59362.5, total_periode_par_ha: 2374500 },
   ],
 };
 
 const terraOffer = {
-  code: "TERRAPALM+",
+  code: "TERRAPALM",
   montant_pi_par_ha: 84700,
   montant_total_par_ha: 1620200,
-  mensualite_par_ha: 49800,
+  mensualite_par_ha: 38387.5,
   duree_paiement_mois: 40,
   tranches_paiement: [
-    { type: "paiement_initial", mois: 1, montant: 84700, mensualite_par_ha: 0 },
-    { annee: 1, mois: 11, mois_debut: 2, mois_fin: 12, mensualite_par_ha: 26900 },
-    { annee: 2, mois: 12, mois_debut: 13, mois_fin: 24, mensualite_par_ha: 36900 },
-    { annee: 3, mois: 16, mois_debut: 25, mois_fin: 40, mensualite_par_ha: 49800 },
+    { type: "mensualite_unique", mois: 40, mois_debut: 1, mois_fin: 40, mensualite_par_ha: 38387.5, total_periode_par_ha: 1535500 },
   ],
 };
 
 describe("pricing.ts — source CRM/DB", () => {
-  it("reconstruit PalmInvest+ depuis les données de l'offre", () => {
+  it("reconstruit PalmInvest depuis la mensualité uniforme de l'offre", () => {
     const s = getPricingScheduleFromOffer(palmOffer)!;
     expect(s.paiement_initial).toBe(90700);
-    expect(s.an1_mensuel).toBe(31900);
-    expect(s.an2_mensuel).toBe(56900);
-    expect(s.an3_mensuel).toBe(83800);
+    expect(s.an1_mensuel).toBe(59362.5);
+    expect(s.an1_duree_mois).toBe(40);
+    expect(s.an2_duree_mois).toBe(0);
+    expect(s.an3_duree_mois).toBe(0);
+    expect(s.mensualite_unique).toBe(true);
     expect(s.duree_totale_mois).toBe(40);
     expect(s.total_par_ha).toBe(2465200);
   });
 
-  it("reconstruit TerraPalm+ depuis les données de l'offre", () => {
+  it("reconstruit TerraPalm depuis la mensualité uniforme de l'offre", () => {
     const s = getPricingScheduleFromOffer(terraOffer)!;
     expect(s.duree_totale_mois).toBe(40);
     expect(s.total_par_ha).toBe(1620200);
-    expect(s.an3_duree_mois).toBe(16);
+    expect(s.mensualite_unique).toBe(true);
+    expect(getFullTariffGridFromOffer(terraOffer)![0].label).toBe("Mensualité unique — 40 mois");
   });
 
-  it("suit la phase courante depuis l'offre DB", () => {
+  it("conserve le même tarif mensuel sur toute la durée", () => {
     const d = new Date();
     d.setMonth(d.getMonth() - 25);
     const r = getCurrentRateFromOffer(palmOffer, d.toISOString())!;
-    expect(r.annee).toBe(3);
-    expect(r.mensuel_par_ha).toBe(83800);
+    expect(r.label).toBe("Mensualité unique");
+    expect(r.mensuel_par_ha).toBe(59362.5);
   });
 
-  it("construit la grille uniquement depuis tranches_paiement", () => {
+  it("construit une seule ligne d'échéancier depuis tranches_paiement", () => {
     const grid = getFullTariffGridFromOffer(palmOffer)!;
-    expect(grid).toHaveLength(3);
-    expect(grid[2].label).toBe("An 3 — 16 mois");
-    expect(grid[2].mensuel).toBe(83800);
+    expect(grid).toHaveLength(1);
+    expect(grid[0].label).toBe("Mensualité unique — 40 mois");
+    expect(grid[0].mensuel).toBe(59362.5);
   });
 });
 
 describe("pricing.ts — calculs issus des tranches CRM/DB", () => {
-  it("calcule 30 jours An1 sur 1 ha", () => {
+  it("calcule 30 jours de mensualité unique sur 1 ha", () => {
     const r = calculateProgressiveAmountByDays(palmOffer, 0, 30, 1);
-    expect(Math.round(r.montant)).toBe(31900);
+    expect(Math.round(r.montant)).toBe(59363);
+    expect(r.segments[0].label).toBe("Mensualité unique");
   });
 
-  it("traverse An1 vers An2", () => {
-    const r = calculateProgressiveAmountByDays(palmOffer, 320, 30, 1);
-    expect(r.segments).toHaveLength(2);
-    expect(r.segments[0].annee).toBe(1);
-    expect(r.segments[1].annee).toBe(2);
+  it("garde la même mensualité après 12 mois", () => {
+    const r = calculateProgressiveAmountByDays(palmOffer, 360, 30, 1);
+    expect(Math.round(r.montant)).toBe(59363);
   });
 
   it("s'arrête à la fin de l'échéancier", () => {
