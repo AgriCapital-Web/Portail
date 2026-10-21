@@ -18,6 +18,7 @@ export interface PricingSchedule {
   total_par_ha: number;
   duree_totale_mois: number;
   cash_price: number;
+  mensualite_unique: boolean;
 }
 
 export interface OfferPricingSource {
@@ -64,17 +65,18 @@ const toNumber = (value: unknown, fallback = 0): number => {
   return Number.isFinite(n) ? n : fallback;
 };
 
-function getTranches(offre?: OfferPricingSource | null): Array<{ annee: number; mois: number; mensualite_par_ha: number }> {
+function getTranches(offre?: OfferPricingSource | null): Array<{ annee: number; mois: number; mensualite_par_ha: number; unique: boolean }> {
   const raw = offre?.tranches_paiement;
   const parsed = Array.isArray(raw) ? raw : [];
   return parsed
     .filter((t: any) => String(t?.type || '').toLowerCase() !== 'paiement_initial')
     .map((t: any) => ({
-      annee: toNumber(t?.annee),
-      mois: toNumber(t?.mois),
+      annee: toNumber(t?.annee, 1),
+      mois: toNumber(t?.mois) || Math.max(0, toNumber(t?.mois_fin) - toNumber(t?.mois_debut) + 1),
       mensualite_par_ha: toNumber(t?.mensualite_par_ha),
+      unique: String(t?.type || '').toLowerCase() === 'mensualite_unique',
     }))
-    .filter((t) => t.annee > 0 && t.mois > 0 && t.mensualite_par_ha > 0)
+    .filter((t) => (t.annee > 0 || t.unique) && t.mois > 0 && t.mensualite_par_ha > 0)
     .sort((a, b) => a.annee - b.annee);
 }
 
@@ -89,12 +91,13 @@ export function getPricingScheduleFromOffer(offre?: OfferPricingSource | null): 
   const trancheDuration = tranches.reduce((sum, t) => sum + t.mois, 0);
   const duration = fallbackDuration > 0 ? fallbackDuration : trancheDuration;
   const byYear = [tranches[0], tranches[1] || tranches[0], tranches[2] || tranches[1] || tranches[0]];
-  const an1Mensuel = byYear[0]?.mensualite_par_ha || mensualiteFallback;
-  const an2Mensuel = byYear[1]?.mensualite_par_ha || an1Mensuel;
-  const an3Mensuel = byYear[2]?.mensualite_par_ha || an2Mensuel;
-  const an1Duree = byYear[0]?.mois || Math.min(12, duration);
-  const an2Duree = byYear[1]?.mois || Math.min(12, Math.max(0, duration - an1Duree));
-  const an3Duree = byYear[2]?.mois || Math.max(0, duration - an1Duree - an2Duree);
+  const mensualiteUnique = tranches.length === 1 && tranches[0].unique;
+  const an1Mensuel = mensualiteUnique ? tranches[0].mensualite_par_ha : (byYear[0]?.mensualite_par_ha || mensualiteFallback);
+  const an2Mensuel = mensualiteUnique ? an1Mensuel : (byYear[1]?.mensualite_par_ha || an1Mensuel);
+  const an3Mensuel = mensualiteUnique ? an1Mensuel : (byYear[2]?.mensualite_par_ha || an2Mensuel);
+  const an1Duree = mensualiteUnique ? duration : (byYear[0]?.mois || Math.min(12, duration));
+  const an2Duree = mensualiteUnique ? 0 : (byYear[1]?.mois || Math.min(12, Math.max(0, duration - an1Duree)));
+  const an3Duree = mensualiteUnique ? 0 : (byYear[2]?.mois || Math.max(0, duration - an1Duree - an2Duree));
   const totalRecalcule = paiementInitial
     + an1Mensuel * an1Duree
     + an2Mensuel * an2Duree
@@ -111,6 +114,7 @@ export function getPricingScheduleFromOffer(offre?: OfferPricingSource | null): 
     total_par_ha: toNumber(offre.montant_total_par_ha, totalRecalcule),
     duree_totale_mois: duration,
     cash_price: toNumber(offre.montant_cash_par_ha, toNumber(offre.montant_total_par_ha, totalRecalcule)),
+    mensualite_unique: mensualiteUnique,
   };
 }
 
@@ -130,6 +134,7 @@ function getElapsedMonths(dateActivation: string | null | undefined): number {
 }
 
 function getScheduleTranches(schedule: PricingSchedule) {
+  if (schedule.mensualite_unique) return [{ annee: 1, label: 'Mensualité unique', mois: schedule.duree_totale_mois, mensuel: schedule.an1_mensuel }];
   return [
     { annee: 1, label: 'An 1', mois: schedule.an1_duree_mois, mensuel: schedule.an1_mensuel },
     { annee: 2, label: 'An 2', mois: schedule.an2_duree_mois, mensuel: schedule.an2_mensuel },
@@ -144,6 +149,23 @@ export function getCurrentRateFromOffer(
   const schedule = getPricingScheduleFromOffer(offre);
   if (!schedule) return null;
   const moisEcoules = getElapsedMonths(dateActivation);
+  if (schedule.mensualite_unique) {
+    const mensuel = schedule.an1_mensuel;
+    const moisRestants = Math.max(0, schedule.duree_totale_mois - moisEcoules);
+    return {
+      annee: 1,
+      label: 'Mensualité unique',
+      mensuel_par_ha: mensuel,
+      jour_par_ha: Math.round(mensuel / 30),
+      semaine_par_ha: Math.round(mensuel / 4),
+      trimestre_par_ha: mensuel * 3,
+      semestre_par_ha: mensuel * 6,
+      annuel_par_ha: mensuel * 12,
+      mois_restants_dans_annee: moisRestants,
+      mois_ecoules: moisEcoules,
+      schedule,
+    };
+  }
   let annee: number;
   let mensuel: number;
   let moisRestants: number;
