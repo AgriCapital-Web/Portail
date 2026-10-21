@@ -11,22 +11,22 @@ import { validateOfferPricing } from "./pricingGuard";
 const palmOffer = {
   code: "PALMINVEST",
   montant_pi_par_ha: 90700,
-  montant_total_par_ha: 2465200,
-  mensualite_par_ha: 59362.5,
-  duree_paiement_mois: 40,
+  montant_total_par_ha: 2467900,
+  mensualite_par_ha: 56600,
+  duree_paiement_mois: 42,
   tranches_paiement: [
-    { type: "mensualite_unique", mois: 40, mois_debut: 1, mois_fin: 40, mensualite_par_ha: 59362.5, total_periode_par_ha: 2374500 },
+    { type: "mensualite_unique", mois: 42, mois_debut: 1, mois_fin: 42, mensualite_par_ha: 56600, total_periode_par_ha: 2377200 },
   ],
 };
 
 const terraOffer = {
   code: "TERRAPALM",
   montant_pi_par_ha: 84700,
-  montant_total_par_ha: 1620200,
-  mensualite_par_ha: 38387.5,
-  duree_paiement_mois: 40,
+  montant_total_par_ha: 1621900,
+  mensualite_par_ha: 36600,
+  duree_paiement_mois: 42,
   tranches_paiement: [
-    { type: "mensualite_unique", mois: 40, mois_debut: 1, mois_fin: 40, mensualite_par_ha: 38387.5, total_periode_par_ha: 1535500 },
+    { type: "mensualite_unique", mois: 42, mois_debut: 1, mois_fin: 42, mensualite_par_ha: 36600, total_periode_par_ha: 1537200 },
   ],
 };
 
@@ -34,21 +34,21 @@ describe("pricing.ts — source CRM/DB", () => {
   it("reconstruit PalmInvest depuis la mensualité uniforme de l'offre", () => {
     const s = getPricingScheduleFromOffer(palmOffer)!;
     expect(s.paiement_initial).toBe(90700);
-    expect(s.an1_mensuel).toBe(59362.5);
+    expect(s.an1_mensuel).toBe(56600);
     expect(s.an1_duree_mois).toBe(40);
     expect(s.an2_duree_mois).toBe(0);
     expect(s.an3_duree_mois).toBe(0);
     expect(s.mensualite_unique).toBe(true);
-    expect(s.duree_totale_mois).toBe(40);
-    expect(s.total_par_ha).toBe(2465200);
+    expect(s.duree_totale_mois).toBe(42);
+    expect(s.total_par_ha).toBe(2467900);
   });
 
   it("reconstruit TerraPalm depuis la mensualité uniforme de l'offre", () => {
     const s = getPricingScheduleFromOffer(terraOffer)!;
-    expect(s.duree_totale_mois).toBe(40);
-    expect(s.total_par_ha).toBe(1620200);
+    expect(s.duree_totale_mois).toBe(42);
+    expect(s.total_par_ha).toBe(1621900);
     expect(s.mensualite_unique).toBe(true);
-    expect(getFullTariffGridFromOffer(terraOffer)![0].label).toBe("Mensualité unique — 40 mois");
+    expect(getFullTariffGridFromOffer(terraOffer)![0].label).toBe("Mensualité unique — 42 mois");
   });
 
   it("conserve le même tarif mensuel sur toute la durée", () => {
@@ -56,14 +56,14 @@ describe("pricing.ts — source CRM/DB", () => {
     d.setMonth(d.getMonth() - 25);
     const r = getCurrentRateFromOffer(palmOffer, d.toISOString())!;
     expect(r.label).toBe("Mensualité unique");
-    expect(r.mensuel_par_ha).toBe(59362.5);
+    expect(r.mensuel_par_ha).toBe(56600);
   });
 
   it("construit une seule ligne d'échéancier depuis tranches_paiement", () => {
     const grid = getFullTariffGridFromOffer(palmOffer)!;
     expect(grid).toHaveLength(1);
-    expect(grid[0].label).toBe("Mensualité unique — 40 mois");
-    expect(grid[0].mensuel).toBe(59362.5);
+    expect(grid[0].label).toBe("Mensualité unique — 42 mois");
+    expect(grid[0].mensuel).toBe(56600);
   });
 });
 
@@ -80,7 +80,7 @@ describe("pricing.ts — calculs issus des tranches CRM/DB", () => {
   });
 
   it("s'arrête à la fin de l'échéancier", () => {
-    const r = calculateProgressiveAmountByDays(palmOffer, 1200, 100, 1);
+    const r = calculateProgressiveAmountByDays(palmOffer, 1300, 100, 1);
     expect(r.montant).toBe(0);
     expect(r.totalJours).toBe(0);
   });
@@ -105,6 +105,6 @@ describe("pricingGuard — cohérence CRM/DB", () => {
 
 describe("formatCFA", () => {
   it("formate le montant", () => {
-    expect(formatCFA(2465200)).toMatch(/2[\\s\\u00a0\\u202f]465[\\s\\u00a0\\u202f]200 F/);
+    expect(formatCFA(2467900)).toMatch(/2[\\s\\u00a0\\u202f]465[\\s\\u00a0\\u202f]200 F/);
   });
 });
