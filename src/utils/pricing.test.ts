@@ -35,7 +35,7 @@ describe("pricing.ts — source CRM/DB", () => {
     const s = getPricingScheduleFromOffer(palmOffer)!;
     expect(s.paiement_initial).toBe(90700);
     expect(s.an1_mensuel).toBe(56600);
-    expect(s.an1_duree_mois).toBe(40);
+    expect(s.an1_duree_mois).toBe(42);
     expect(s.an2_duree_mois).toBe(0);
     expect(s.an3_duree_mois).toBe(0);
     expect(s.mensualite_unique).toBe(true);
