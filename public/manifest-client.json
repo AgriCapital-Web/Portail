@@ -10,14 +10,14 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "/images/logo-light.png",
-      "sizes": "192x192",
+      "src": "https://www.agricapital.ci/agricapital360-officiel.png?v=20261021-logo",
+      "sizes": "any",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/images/logo-light.png",
-      "sizes": "512x512",
+      "src": "https://www.agricapital.ci/agricapital360-officiel.png?v=20261021-logo",
+      "sizes": "any",
       "type": "image/png",
       "purpose": "any"
     }
