@@ -215,6 +215,8 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
       </header>
 
       <main className="client-page-content flex-1 container mx-auto py-4 lg:py-8 space-y-4 w-full max-w-5xl">
+        {isPreActivation && client?.id_unique && <Card className="rounded-lg border-primary/30"><CardContent className="flex flex-wrap items-center justify-between gap-2 p-3"><span className="text-sm text-muted-foreground">Votre numéro client</span><strong className="text-base font-black tracking-wide">{client.id_unique}</strong></CardContent></Card>}
+
         {client?.offres && <Card className="rounded-lg shadow-md border-2" style={{ borderColor: client.offres.couleur || "#00643C" }}><CardContent className="p-3 flex items-center gap-3"><div className="h-10 w-10 rounded-lg flex items-center justify-center text-primary-foreground shrink-0" style={{ background: client.offres.couleur || "#00643C" }}><Leaf className="h-5 w-5" /></div><div><p className="text-sm uppercase tracking-wide text-muted-foreground font-semibold">Votre offre</p><p className="font-bold text-sm">{client.offres.nom}</p></div></CardContent></Card>}
 
         <Card className="card-brand rounded-lg shadow-md">
