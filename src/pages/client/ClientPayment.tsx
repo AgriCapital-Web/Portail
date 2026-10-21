@@ -131,7 +131,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
 
   const handleSubmit = async () => {
     if (isPreActivation && dbInitialDue <= 0) {
-    return <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4"><Card className="w-full max-w-lg rounded-2xl border border-[#22A45D]/30 shadow-lg"><CardContent className="space-y-4 p-6 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#22A45D]/10 text-2xl text-[#22A45D]"><CheckCircle className="h-7 w-7"/></div><h2 className="text-xl font-black text-[#0B6B46]">Dossier validé</h2><p className="text-sm text-muted-foreground">Aucun paiement initial ne reste à régler. L’activation de votre espace client est en cours.</p><Button onClick={onBack} className="w-full bg-[#0B6B46] text-white hover:bg-[#075638]">Vérifier l’activation</Button></CardContent></Card></div>;
+    return <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4"><Card className="w-full max-w-lg rounded-2xl border border-[#22A45D]/30 shadow-lg"><CardContent className="space-y-4 p-6 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#22A45D]/10 text-2xl text-[#22A45D]">✓</div><h2 className="text-xl font-black text-[#0B6B46]">Dossier validé</h2><p className="text-sm text-muted-foreground">Aucun paiement initial ne reste à régler. L’activation de votre espace client est en cours.</p><Button onClick={onBack} className="w-full bg-[#0B6B46] text-white hover:bg-[#075638]">Vérifier l’activation</Button></CardContent></Card></div>;
   }
 
   if (!financialAllowed) {
@@ -219,9 +219,9 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
 
         <Card className="card-brand rounded-lg shadow-md">
           <CardContent className="p-5 space-y-4">
-            <div className="flex items-center gap-2"><CreditCard className="h-5 w-5 text-primary" /><h3 className="text-base font-bold">Choisissez ce que vous souhaitez payer</h3></div>
+            <div className="flex items-center gap-2"><CreditCard className="h-5 w-5 text-primary" /><h3 className="text-base font-bold">{isPreActivation ? "Régler le paiement initial" : "Choisissez ce que vous souhaitez payer"}</h3></div>
             <div className="grid grid-cols-2 gap-2">
-              {!isPreActivation && <Button type="button" variant={typePaiement === "mensualite" ? "default" : "outline"} onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>
+              {!isPreActivation && <Button type="button" variant={typePaiement === "mensualite" ? "default" : "outline"} onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>}
               {dbInitialDue > 0 && <Button type="button" variant={typePaiement === "pi" ? "default" : "outline"} onClick={() => setTypePaiement("pi")} className="h-11 rounded-lg">Paiement initial</Button>}
             </div>
 
