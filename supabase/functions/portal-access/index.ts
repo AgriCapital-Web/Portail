@@ -46,7 +46,7 @@ async function issueSession(supabase: any, clientId: string) {
 async function findClient(supabase: any, phone: string) {
   const tail = phone.slice(-8);
   const { data, error } = await supabase.from("clients")
-    .select("id,telephone,whatsapp,telephone_local,whatsapp_local,telephone_indicatif,whatsapp_indicatif,email,nom_complet,compte_actif,statut_global,id_unique,type_client,is_internal,offre_id,montant_total_contrat,contrat_solde_at")
+    .select("id,telephone,whatsapp,telephone_local,whatsapp_local,telephone_indicatif,whatsapp_indicatif,email,nom_complet,compte_actif,validation_statut,statut_global,id_unique,type_client,is_internal,offre_id,montant_total_contrat,contrat_solde_at")
     .or(`telephone.ilike.%${tail},whatsapp.ilike.%${tail},telephone_local.ilike.%${tail},whatsapp_local.ilike.%${tail}`)
     .limit(100);
   if (error) throw error;
@@ -72,8 +72,9 @@ serve(async (req: Request) => {
     if (!client) return json({ success: false, code: "CLIENT_NOT_FOUND", error: "Ce numéro n'est pas enregistré dans votre dossier client AgriCapital." });
     const isDemo = client.id_unique === "AC-DEMO";
     const isBeneficiary = client.type_client === "beneficiaire_particulier";
-    if (!client.compte_actif && !isDemo && !isBeneficiary) {
-      return json({ success: false, error: "Votre compte client n'est pas encore activé. Veuillez contacter AgriCapital." }, 403);
+    const isPreActivation = !client.compte_actif && client.validation_statut === "valide" && !client.is_internal && !isDemo && !isBeneficiary;
+    if (!client.compte_actif && !isDemo && !isBeneficiary && !isPreActivation) {
+      return json({ success: false, code: "CLIENT_NOT_READY", error: "Votre dossier client doit être validé avant l’accès au portail." }, 403);
     }
     const { data: access, error: accessError } = await supabase.from("client_portal_access_codes")
       .select("id,locked_until,last_verified_at").eq("client_id", client.id).maybeSingle();
@@ -87,7 +88,7 @@ serve(async (req: Request) => {
       }
       return json({ success: true, demo: false, client_id: client.id,
         telephone: client.telephone || client.whatsapp || client.telephone_local || client.whatsapp_local,
-        nom_complet: client.nom_complet, needs_access_code_setup: !access, locked_until: access?.locked_until || null });
+        nom_complet: client.nom_complet, needs_access_code_setup: !access, locked_until: access?.locked_until || null, pre_activation: isPreActivation });
     }
     if (action === "setup") {
       if (access) return json({ success: false, error: "Un code d'accès existe déjà pour ce compte. Utilisez-le pour vous connecter.", needs_access_code_setup: false }, 409);
