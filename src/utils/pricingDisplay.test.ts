@@ -26,7 +26,7 @@ const terraOffer = {
 };
 
 describe("Affichage tarifaire depuis CRM/DB", () => {
-  it("affiche PalmInvest avec une mensualité uniforme sur 40 mois", () => {
+  it("affiche PalmInvest avec une mensualité uniforme sur 42 mois", () => {
     const schedule = getPricingScheduleFromOffer(palmOffer)!;
     const grid = getFullTariffGridFromOffer(palmOffer)!;
     expect(schedule.duree_totale_mois).toBe(42);
@@ -36,7 +36,7 @@ describe("Affichage tarifaire depuis CRM/DB", () => {
     expect(grid[0].mensuel).toBe(56600);
   });
 
-  it("affiche TerraPalm avec une mensualité uniforme sur 40 mois", () => {
+  it("affiche TerraPalm avec une mensualité uniforme sur 42 mois", () => {
     const schedule = getPricingScheduleFromOffer(terraOffer)!;
     const grid = getFullTariffGridFromOffer(terraOffer)!;
     expect(schedule.duree_totale_mois).toBe(42);
