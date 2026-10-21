@@ -25,11 +25,13 @@ export function validateOfferPricing(offre: OfferPricingSource | null | undefine
 
   const tranches = Array.isArray(offre.tranches_paiement) ? offre.tranches_paiement as any[] : [];
   const hasPaymentInitialMonth = tranches.some((t) => String(t?.type || "").toLowerCase() === "paiement_initial");
-  const expectedDuree =
-    schedule.an1_duree_mois +
-    schedule.an2_duree_mois +
-    schedule.an3_duree_mois +
-    (hasPaymentInitialMonth ? 1 : 0);
+  const uniqueMonthlyTranche = tranches.find((t) => String(t?.type || "").toLowerCase() === "mensualite_unique");
+  const explicitTrancheMonths = uniqueMonthlyTranche
+    ? Number(uniqueMonthlyTranche.mois || (Number(uniqueMonthlyTranche.mois_fin || 0) - Number(uniqueMonthlyTranche.mois_debut || 1) + 1))
+    : 0;
+  const expectedDuree = explicitTrancheMonths > 0
+    ? explicitTrancheMonths + (hasPaymentInitialMonth ? 1 : 0)
+    : schedule.an1_duree_mois + schedule.an2_duree_mois + schedule.an3_duree_mois + (hasPaymentInitialMonth ? 1 : 0);
   const actualDuree = Number(offre.duree_paiement_mois ?? expectedDuree);
   if (Math.abs(expectedDuree - actualDuree) > 0) {
     issues.push({
