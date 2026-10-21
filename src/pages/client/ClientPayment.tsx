@@ -31,7 +31,7 @@ const calculateKkiapayAbsorption = (amount: number, method: ClientPaymentMethod,
 const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPaymentProps) => {
   const { toast } = useToast();
   const { openPayment, onSuccess, onFailed, onClose } = useKkiapay();
-  const [typePaiement, setTypePaiement] = useState<"pi" | "mensualite">("mensualite");
+  const [typePaiement, setTypePaiement] = useState<"pi" | "mensualite">(() => client?.pre_activation ? "pi" : "mensualite");
   const [selectedPlantation, setSelectedPlantation] = useState("");
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<ClientPaymentMethod>("momo");
@@ -47,6 +47,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
   const hasArrears = dbArrears > 0 || dbLateDays > 0;
   const activeHectares = Math.max(0, Number(dbFinancialState?.mensualite?.hectares_actifs || 0));
   const isDemoAccount = isLocalDemo(client);
+  const isPreActivation = Boolean(client?.pre_activation && !client?.compte_actif);
   const beneficiaryClient = Boolean(client?.is_beneficiaire_particulier || client?.type_client === "beneficiaire_particulier");
   const totalContract = Math.max(0, Number(client?.montant_total_contrat || 0));
   const totalPaid = (paiements || []).filter((p:any)=>p.statut==="valide").reduce((sum:number,p:any)=>sum+Number(p.montant_paye ?? p.montant ?? 0),0);
@@ -129,16 +130,24 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
   };
 
   const handleSubmit = async () => {
-    if (!financialAllowed) {
+    if (isPreActivation && dbInitialDue <= 0) {
+    return <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4"><Card className="w-full max-w-lg rounded-2xl border border-[#22A45D]/30 shadow-lg"><CardContent className="space-y-4 p-6 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#22A45D]/10 text-2xl text-[#22A45D]"><CheckCircle className="h-7 w-7"/></div><h2 className="text-xl font-black text-[#0B6B46]">Dossier validé</h2><p className="text-sm text-muted-foreground">Aucun paiement initial ne reste à régler. L’activation de votre espace client est en cours.</p><Button onClick={onBack} className="w-full bg-[#0B6B46] text-white hover:bg-[#075638]">Vérifier l’activation</Button></CardContent></Card></div>;
+  }
+
+  if (!financialAllowed) {
       toast({variant:"destructive",title:"Paiement indisponible",description:beneficiaryClient ? "Ce compte bénéficiaire ne dispose pas d’actions financières." : "Ce contrat est déjà soldé ou ne permet pas de paiement."});
       return;
     }
     if (isDemoAccount) {
-      if (montantTotal > 0 && plantation) return handleDemoPayment();
+      if (montantTotal > 0 && (plantation || isPreActivation)) return handleDemoPayment();
       return;
     }
     if (typePaiement === "pi" && montantTotal <= 0 && plantation) return handleActivationGratuite();
-    if (!plantation || montantTotal <= 0) {
+    if (isPreActivation && (typePaiement !== "pi" || dbInitialDue <= 0)) {
+      toast({ title: "Activation en cours", description: "Le paiement initial est déjà soldé ou aucun montant n’est dû." });
+      return;
+    }
+    if ((!plantation && !isPreActivation) || montantTotal <= 0) {
       toast({ variant: "destructive", title: "Montant requis", description: "Choisissez un montant réel à payer." });
       return;
     }
@@ -151,7 +160,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
           action: "insert",
           portal_token: sessionStorage.getItem("agri_portal_access_token"),
           client_id: client.id,
-          plantation_id: plantation.id,
+          plantation_id: plantation?.id || null,
           type_paiement: typePaiement === "pi" ? "PI" : "MENSUALITE",
           montant: montantTotal,
           mode_paiement: paymentMethod === "momo" ? "Mobile Money" : "Carte bancaire",
@@ -212,7 +221,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
           <CardContent className="p-5 space-y-4">
             <div className="flex items-center gap-2"><CreditCard className="h-5 w-5 text-primary" /><h3 className="text-base font-bold">Choisissez ce que vous souhaitez payer</h3></div>
             <div className="grid grid-cols-2 gap-2">
-              <Button type="button" variant={typePaiement === "mensualite" ? "default" : "outline"} onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>
+              {!isPreActivation && <Button type="button" variant={typePaiement === "mensualite" ? "default" : "outline"} onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>
               {dbInitialDue > 0 && <Button type="button" variant={typePaiement === "pi" ? "default" : "outline"} onClick={() => setTypePaiement("pi")} className="h-11 rounded-lg">Paiement initial</Button>}
             </div>
 
@@ -249,7 +258,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
               </div>
             </>}
 
-            {typePaiement === "pi" && plantation && <div className="rounded-lg bg-muted/30 p-4 space-y-2 text-sm"><div className="flex justify-between"><span>Plantation</span><strong>{plantation.nom_plantation || plantation.id_unique}</strong></div><div className="flex justify-between"><span>Surface</span><strong>{plantation.superficie_ha} ha</strong></div><div className="flex justify-between"><span>Solde Paiement initial réel</span><strong className="text-primary">{fmt(dbInitialDue)}</strong></div></div>}
+            {typePaiement === "pi" && (plantation || isPreActivation) && <div className="rounded-lg bg-muted/30 p-4 space-y-2 text-sm">{plantation && <><div className="flex justify-between"><span>Plantation</span><strong>{plantation.nom_plantation || plantation.id_unique}</strong></div><div className="flex justify-between"><span>Surface</span><strong>{plantation.superficie_ha} ha</strong></div></>}<div className="flex justify-between"><span>Solde du paiement initial</span><strong className="text-primary">{fmt(dbInitialDue)}</strong></div></div>}
 
             {typePaiement === "mensualite" && plantation && <div className="rounded-lg border p-4"><div className="flex items-center gap-2 text-sm font-bold"><MapPin className="h-4 w-4 text-primary" />{plantation.nom_plantation || plantation.id_unique}</div><p className="text-sm text-muted-foreground mt-1">{plantation.superficie_activee || 0} ha actifs</p></div>}
 
@@ -262,8 +271,8 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
               <div className="grid grid-cols-2 gap-2 text-sm"><div className="rounded-lg bg-muted/40 p-3"><p className="text-muted-foreground">Débit client</p><p className="font-black text-primary">{fmt(kkiapayPricing.clientDebitAmount)}</p></div><div className="rounded-lg bg-muted/40 p-3"><p className="text-muted-foreground">Frais absorbés</p><p className="font-black">{fmt(kkiapayPricing.absorbedByAgriCapital)}</p></div></div>
             </div>}
 
-            <Button onClick={handleSubmit} disabled={loading || !plantation || (montantTotal <= 0 && !isPiFree)} className="w-full h-14 rounded-lg font-bold">{loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CreditCard className="h-5 w-5 mr-2" />}{isPiFree ? "Activer ma plantation (0 F)" : (isDemoAccount ? "Payer maintenant (simulation)" : "Payer maintenant")}</Button>
-            <p className="text-sm text-center text-muted-foreground">Votre choix indique uniquement le montant que vous souhaitez régler maintenant. Aucun paiement futur ni échéancier n'est créé.</p>
+            <Button onClick={handleSubmit} disabled={loading || (!plantation && !isPreActivation) || (montantTotal <= 0 && !isPiFree)} className="w-full h-14 rounded-lg font-bold">{loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CreditCard className="h-5 w-5 mr-2" />}{isPreActivation ? "Payer le paiement initial" : isPiFree ? "Activer ma plantation (0 F)" : (isDemoAccount ? "Payer maintenant (simulation)" : "Payer maintenant")}</Button>
+            <p className="text-sm text-center text-muted-foreground">{isPreActivation ? "Après confirmation du paiement initial, votre compte client sera activé automatiquement selon les conditions de votre contrat." : "Votre choix indique uniquement le montant que vous souhaitez régler maintenant. Aucun paiement futur ni échéancier n'est créé."}</p>
           </CardContent>
         </Card>
 
