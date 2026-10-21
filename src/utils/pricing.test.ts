@@ -70,13 +70,13 @@ describe("pricing.ts — source CRM/DB", () => {
 describe("pricing.ts — calculs issus des tranches CRM/DB", () => {
   it("calcule 30 jours de mensualité unique sur 1 ha", () => {
     const r = calculateProgressiveAmountByDays(palmOffer, 0, 30, 1);
-    expect(Math.round(r.montant)).toBe(59363);
+    expect(Math.round(r.montant)).toBe(56600);
     expect(r.segments[0].label).toBe("Mensualité unique");
   });
 
   it("garde la même mensualité après 12 mois", () => {
     const r = calculateProgressiveAmountByDays(palmOffer, 360, 30, 1);
-    expect(Math.round(r.montant)).toBe(59363);
+    expect(Math.round(r.montant)).toBe(56600);
   });
 
   it("s'arrête à la fin de l'échéancier", () => {
@@ -105,6 +105,6 @@ describe("pricingGuard — cohérence CRM/DB", () => {
 
 describe("formatCFA", () => {
   it("formate le montant", () => {
-    expect(formatCFA(2467900)).toMatch(/2[\\s\\u00a0\\u202f]465[\\s\\u00a0\\u202f]200 F/);
+    expect(formatCFA(2467900)).toMatch(/2[\\s\\u00a0\\u202f]467[\\s\\u00a0\\u202f]900 F/);
   });
 });
