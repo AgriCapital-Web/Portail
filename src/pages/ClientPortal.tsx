@@ -246,6 +246,10 @@ const ClientPortal = () => {
     if (isPaymentReturn) return <PaymentReturn onBack={() => navigate(client ? "/dashboard" : "/", { replace: true })} />;
     if (!client) return null;
 
+    if (client.pre_activation) {
+      return <ClientPayment client={client} plantations={[]} paiements={paiements} onBack={() => { lastRestoreFetchAt.current = 0; navigate("/dashboard", { replace: true }); }} />;
+    }
+
     if (privateView === "plantation-hub" && plantations.length === 0) {
       navigate("/dashboard", { replace: true });
       return null;
