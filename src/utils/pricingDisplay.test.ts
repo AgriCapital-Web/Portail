@@ -30,7 +30,7 @@ describe("Affichage tarifaire depuis CRM/DB", () => {
     const schedule = getPricingScheduleFromOffer(palmOffer)!;
     const grid = getFullTariffGridFromOffer(palmOffer)!;
     expect(schedule.duree_totale_mois).toBe(42);
-    expect(formatCFA(schedule.total_par_ha)).toMatch(/2[\\s\\u00a0\\u202f]467[\\s\\u00a0\\u202f]900 F/);
+    expect(formatCFA(schedule.total_par_ha)).toMatch(/2[\s\u00a0\u202f]467[\s\u00a0\u202f]900 F/);
     expect(grid).toHaveLength(1);
     expect(grid[0].label).toBe("Mensualité unique — 42 mois");
     expect(grid[0].mensuel).toBe(56600);
@@ -40,7 +40,7 @@ describe("Affichage tarifaire depuis CRM/DB", () => {
     const schedule = getPricingScheduleFromOffer(terraOffer)!;
     const grid = getFullTariffGridFromOffer(terraOffer)!;
     expect(schedule.duree_totale_mois).toBe(42);
-    expect(formatCFA(schedule.total_par_ha)).toMatch(/1[\\s\\u00a0\\u202f]621[\\s\\u00a0\\u202f]900 F/);
+    expect(formatCFA(schedule.total_par_ha)).toMatch(/1[\s\u00a0\u202f]621[\s\u00a0\u202f]900 F/);
     expect(grid).toHaveLength(1);
     expect(grid[0].label).toBe("Mensualité unique — 42 mois");
     expect(grid[0].mensuel).toBe(36600);
