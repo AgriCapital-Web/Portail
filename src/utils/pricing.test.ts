@@ -105,6 +105,6 @@ describe("pricingGuard — cohérence CRM/DB", () => {
 
 describe("formatCFA", () => {
   it("formate le montant", () => {
-    expect(formatCFA(2467900)).toMatch(/2[\\s\\u00a0\\u202f]467[\\s\\u00a0\\u202f]900 F/);
+    expect(formatCFA(2467900)).toMatch(/2[\s\u00a0\u202f]467[\s\u00a0\u202f]900 F/);
   });
 });
