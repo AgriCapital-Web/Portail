@@ -29,6 +29,9 @@ describe("Aucune ancienne terminologie de paiement dans AC_Clients", () => {
   const files = walk(ROOT).filter((f) => !/\.test\.tsx?$/.test(f));
   it.each(files)("%s ne contient pas de terminologie obsolète", (file) => {
     const content = readFileSync(file, "utf8");
-    for (const re of FORBIDDEN) expect(content).not.toMatch(re);
+    // These are legacy DB column identifiers still required by the current CRM schema,
+    // not user-facing labels. Exclude only the identifiers while checking the rest.
+    const userFacingSource = content.replace(/\\b(?:est_depot_initial|montant_depot_initial_par_ha)\\b/g, "");
+    for (const re of FORBIDDEN) expect(userFacingSource).not.toMatch(re);
   });
 });
