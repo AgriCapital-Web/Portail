@@ -5,7 +5,7 @@
  * identifiant unique) :
  *  - les synchronisations réussies / échouées (lastSync)
  *  - les changements CRM détectés (prix DI, mensualité, offre, promotion, statut…)
- *  - les annulations d'échéances de Dépôt Initial
+ *  - les annulations d'échéances de Paiement initial
  *  - la source effective des prix affichés (vue prix effectif, champ CRM, grille figée)
  *
  * Stockage local (localStorage), borné à 120 entrées par compte.
@@ -107,12 +107,12 @@ const nOrNull = (v: any): number | null =>
   v === null || v === undefined || v === "" || !Number.isFinite(Number(v)) ? null : Number(v);
 
 export function buildCrmSnapshot(
-  souscripteur: any,
+  clientRecord: any,
   plantations: any[],
   paiements: any[],
 ): CrmSnapshot {
-  const offre = souscripteur?.offres || {};
-  const promo = souscripteur?.promotion_active || souscripteur?.promotions;
+  const offre = clientRecord?.offres || {};
+  const promo = clientRecord?.promotion_active || clientRecord?.promotions;
   const diAnnules = (paiements || []).filter(
     (p: any) => p?.est_depot_initial && String(p?.statut || "").toLowerCase() === "annule",
   ).length;
@@ -120,13 +120,13 @@ export function buildCrmSnapshot(
     offre_code: String(offre.code || "—"),
     offre_nom: String(offre.nom || "—"),
     di_par_ha: nOrNull(offre.montant_da_par_ha) ?? nOrNull(offre.montant_depot_initial_par_ha),
-    mensuel_par_ha: nOrNull(offre.contribution_mensuelle_par_ha),
+    mensuel_par_ha: nOrNull(offre.mensualite_par_ha),
     total_par_ha: nOrNull(offre.montant_total_par_ha),
     duree_mois: nOrNull(offre.duree_paiement_mois),
     tranches: JSON.stringify(offre.tranches_paiement ?? null),
     promotion: promo ? `${promo.nom || promo.code || "promo"}` : "—",
-    statut: String(souscripteur?.statut || souscripteur?.statut_global || "—"),
-    phase: String(souscripteur?.phase_actuelle || "—"),
+    statut: String(clientRecord?.statut || clientRecord?.statut_global || "—"),
+    phase: String(clientRecord?.phase_actuelle || "—"),
     nb_plantations: (plantations || []).length,
     nb_paiements: (paiements || []).length,
     di_annules: diAnnules,
@@ -137,7 +137,7 @@ export function buildCrmSnapshot(
 const LABELS: Record<keyof CrmSnapshot, string> = {
   offre_code: "Code offre",
   offre_nom: "Nom de l'offre",
-  di_par_ha: "Dépôt Initial / ha",
+  di_par_ha: "Paiement initial / ha",
   mensuel_par_ha: "Paiement mensuel / ha",
   total_par_ha: "Total contrat / ha",
   duree_mois: "Durée (mois)",
@@ -147,7 +147,7 @@ const LABELS: Record<keyof CrmSnapshot, string> = {
   phase: "Phase du contrat",
   nb_plantations: "Nombre de plantations",
   nb_paiements: "Nombre de paiements",
-  di_annules: "Échéances DI annulées",
+  di_annules: "Paiements initiaux annulés",
   price_source: "Source des prix",
 };
 
@@ -175,7 +175,7 @@ export function diffAndLog(
     if (k === "di_annules" && Number(next[k]) > Number(prev[k])) {
       appendJournal(account, {
         kind: "di_cancel",
-        label: "Échéance Dépôt Initial annulée",
+        label: "Échéance Paiement initial annulée",
         details: `${Number(next[k]) - Number(prev[k])} échéance(s) DI annulée(s) côté CRM`,
         before: fmtVal(prev[k]),
         after: fmtVal(next[k]),
