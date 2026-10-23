@@ -169,6 +169,13 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
       type="password"
       placeholder="••••"
       className="h-14 rounded-lg text-center text-2xl tracking-[0.5em] font-semibold"
+      onKeyDown={(e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        if (loading) return;
+        if (step === "setup") void handleSetup();
+        else if (step === "login") void handleLogin();
+      }}
     />
   );
 
@@ -234,7 +241,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                       </Suspense>
                       {countriesError && <p role="alert" className="mt-2 text-sm text-destructive">La liste des pays est indisponible. Réessayez dans quelques instants.</p>}
                     </div>
-                    <Button onClick={() => void handlePhoneContinue()} disabled={loading || countriesLoading || countriesError} className="min-h-10 h-auto py-2.5 w-full rounded-xl whitespace-normal text-[clamp(0.875rem,1.3vw,1rem)] leading-snug bg-primary text-primary-foreground hover:bg-muted">
+                    <Button onClick={() => void handlePhoneContinue()} disabled={loading || countriesLoading || countriesError} className="min-h-10 h-auto py-2.5 w-full rounded-xl whitespace-normal text-[clamp(0.875rem,1.3vw,1rem)] leading-snug bg-primary text-primary-foreground transition-colors hover:bg-[#005331] hover:text-white focus-visible:bg-[#005331] focus-visible:text-white active:bg-[#00452A]">
                       {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Chargement…</> : <>Vérifier le numéro <ArrowRight className="ml-2 h-5 w-5" /></>}
                     </Button>
                     <Button type="button" variant="outline" onClick={handleDemoEnter} className="min-h-10 h-auto py-2.5 w-full rounded-xl border-2 border-[#E89C31] bg-white text-[#00643C] font-semibold shadow-sm whitespace-normal text-[clamp(0.875rem,1.3vw,1rem)] leading-snug transition-all hover:bg-[#FFF7E8] hover:border-[#D98A19] hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#E89C31] focus-visible:ring-offset-2">
@@ -251,7 +258,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                     </div>
                     <div><label className="mb-2 block text-sm font-semibold text-primary">Nouveau code</label>{codeInput(accessCode, setAccessCode)}</div>
                     <div><label className="mb-2 block text-sm font-semibold text-primary">Confirmer le code</label>{codeInput(confirmCode, setConfirmCode)}</div>
-                    <Button onClick={() => void handleSetup()} disabled={loading} className="h-14 w-full rounded-lg bg-primary text-primary-foreground hover:bg-muted">
+                    <Button onClick={() => void handleSetup()} disabled={loading} className="h-14 w-full rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-[#005331] hover:text-white focus-visible:bg-[#005331] focus-visible:text-white active:bg-[#00452A]">
                       {loading ? "Création…" : <>Créer mon accès <CheckCircle2 className="ml-2 h-5 w-5" /></>}
                     </Button>
                   </div>
