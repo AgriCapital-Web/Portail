@@ -145,15 +145,16 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
 
   const handleSubmit = async () => {
     if (isPreActivation && dbInitialDue <= 0) {
-    return <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4"><Card className="w-full max-w-lg rounded-2xl border border-[#22A45D]/30 shadow-lg"><CardContent className="space-y-4 p-6 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#22A45D]/10 text-2xl text-[#22A45D]">✓</div><h2 className="text-xl font-black text-[#0B6B46]">Dossier validé</h2><p className="text-sm text-muted-foreground">Aucun paiement initial ne reste à régler. L’activation de votre espace client est en cours.</p><Button onClick={onBack} className="w-full bg-[#0B6B46] text-white hover:bg-[#075638]">Vérifier l’activation</Button></CardContent></Card></div>;
-  }
+      toast({ title: "Activation en cours", description: "Aucun paiement initial ne reste à régler." });
+      return;
+    }
 
   if (!financialAllowed) {
       toast({variant:"destructive",title:"Paiement indisponible",description:beneficiaryClient ? "Ce compte bénéficiaire ne dispose pas d’actions financières." : "Ce contrat est déjà soldé ou ne permet pas de paiement."});
       return;
     }
     if (isDemoAccount) {
-      if (montantTotal > 0 && (plantation || isPreActivation)) return handleDemoPayment();
+      if (montantTotal > 0 && (plantation || selectedPlantation === "all" || isPreActivation)) return handleDemoPayment();
       return;
     }
     if (typePaiement === "pi" && montantTotal <= 0 && plantation) return handleActivationGratuite();
@@ -161,7 +162,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
       toast({ title: "Activation en cours", description: "Le paiement initial est déjà soldé ou aucun montant n’est dû." });
       return;
     }
-    if ((!plantation && !isPreActivation) || montantTotal <= 0) {
+    if ((!plantation && selectedPlantation !== "all" && !isPreActivation) || montantTotal <= 0) {
       toast({ variant: "destructive", title: "Montant requis", description: "Choisissez un montant réel à payer." });
       return;
     }
