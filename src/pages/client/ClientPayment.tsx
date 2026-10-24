@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useKkiapay } from "@/hooks/useKkiapay";
@@ -13,7 +14,7 @@ import { isLocalDemo } from "@/utils/portalRoles";
 import { trackEvent } from "@/utils/errorTracker";
 import { ArrowLeft, CreditCard, MapPin, AlertTriangle, Loader2, Phone, Leaf } from "lucide-react";
 
-interface ClientPaymentProps { client: any; plantations: any[]; paiements: any[]; onBack: () => void; }
+interface ClientPaymentProps { client: any; plantations: any[]; paiements: any[]; onBack: () => void; initialPlantationId?: string | null; }
 type PaymentMode = "1" | "3" | "6" | "9" | "12" | "custom";
 type ClientPaymentMethod = "momo" | "card";
 const calculateKkiapayAbsorption = (amount: number, method: ClientPaymentMethod, feeRate: number) => {
@@ -28,18 +29,19 @@ const calculateKkiapayAbsorption = (amount: number, method: ClientPaymentMethod,
   return { clientDebitAmount, widgetAmount, estimatedFees, feeRate, absorbedByAgriCapital: estimatedFees };
 };
 
-const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPaymentProps) => {
+const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPlantationId }: ClientPaymentProps) => {
   const { toast } = useToast();
   const { openPayment, onSuccess, onFailed, onClose } = useKkiapay();
   const [typePaiement, setTypePaiement] = useState<"pi" | "mensualite">(() => client?.pre_activation ? "pi" : "mensualite");
-  const [selectedPlantation, setSelectedPlantation] = useState("");
+  const [selectedPlantation, setSelectedPlantation] = useState(initialPlantationId || "all");
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<ClientPaymentMethod>("momo");
   const [paymentMode, setPaymentMode] = useState<PaymentMode>("1");
   const [customAmount, setCustomAmount] = useState("");
   const paymentContextRef = useRef<{ reference: string; pricing: ReturnType<typeof calculateKkiapayAbsorption> } | null>(null);
 
-  const dbFinancialState = client?.paiement_etat || {};
+  const plantation = useMemo(() => selectedPlantation === "all" ? undefined : plantations.find((p) => p.id === selectedPlantation), [selectedPlantation, plantations]);
+  const dbFinancialState = selectedPlantation === "all" ? (client?.paiement_etat || {}) : (plantation?.paiement_etat || {});
   const dbInitialDue = Math.max(0, Number(dbFinancialState?.paiement_initial?.solde || 0));
   const dbMonthlyBase = Math.max(0, Number(dbFinancialState?.mensualite?.montant || dbFinancialState?.mensualite?.montant_a_payer || 0));
   const dbArrears = Math.max(0, Number(dbFinancialState?.mensualite?.montant_arriere || 0));
@@ -48,34 +50,46 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
   const activeHectares = Math.max(0, Number(dbFinancialState?.mensualite?.hectares_actifs || 0));
   const isDemoAccount = isLocalDemo(client);
   const isPreActivation = Boolean(client?.pre_activation && !client?.compte_actif);
-  const beneficiaryClient = Boolean(client?.is_beneficiaire_particulier || client?.type_client === "beneficiaire_particulier");
-  const totalContract = Math.max(0, Number(client?.montant_total_contrat || 0));
-  const totalPaid = (paiements || []).filter((p:any)=>p.statut==="valide").reduce((sum:number,p:any)=>sum+Number(p.montant_paye ?? p.montant ?? 0),0);
-  const isSettled = !beneficiaryClient && (Boolean(client?.contrat_solde_at) || (totalContract > 0 && totalPaid >= totalContract));
-  const financialAllowed = !beneficiaryClient && !isSettled && (Boolean(client?.offre_id) || Boolean(client?.paiement_personnalise?.actif) || totalContract > 0);
+  const hasFinancialSubscriptions = Boolean(client?.has_financial_subscriptions);
+  const beneficiaryClient = Boolean(client?.is_beneficiaire_particulier || client?.type_client === "beneficiaire_particulier") && !hasFinancialSubscriptions;
+  const selectedSubscription = plantation?.acquisition_id
+    ? (client?.financial_subscriptions || []).find((subscription: any) => subscription.id === plantation.acquisition_id)
+    : null;
+  const totalContract = Math.max(0, Number(selectedPlantation === "all" || !hasFinancialSubscriptions ? client?.montant_total_contrat : selectedSubscription?.montant_total_contrat || 0));
+  const totalPaid = selectedPlantation === "all" || !hasFinancialSubscriptions
+    ? (paiements || []).filter((p:any)=>p.statut==="valide").reduce((sum:number,p:any)=>sum+Number(p.montant_paye ?? p.montant ?? 0),0)
+    : Math.max(0,Number(plantation?.paiement_etat?.total_paye||0));
+  const isSettled = !beneficiaryClient && ((Boolean(client?.contrat_solde_at) && !hasFinancialSubscriptions) || (totalContract > 0 && totalPaid >= totalContract));
+  const financialAllowed = !beneficiaryClient && !isSettled && (hasFinancialSubscriptions || Boolean(client?.offre_id) || Boolean(client?.paiement_personnalise?.actif) || totalContract > 0);
 
   useEffect(() => {
-    if (selectedPlantation || plantations.length === 0) return;
-    const candidates = typePaiement === "pi"
-      ? plantations.filter((p: any) => Number(p.superficie_ha || 0) - Number(p.superficie_activee || 0) > 0)
-      : plantations.filter((p: any) => Number(p.superficie_activee || 0) > 0);
-    const sorted = [...candidates].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-    if (sorted[0]) setSelectedPlantation(sorted[0].id);
-  }, [typePaiement, plantations, selectedPlantation]);
-
-  const plantation = useMemo(() => plantations.find((p) => p.id === selectedPlantation), [selectedPlantation, plantations]);
+    if (initialPlantationId && plantations.some((p: any) => p.id === initialPlantationId)) {
+      setSelectedPlantation(initialPlantationId);
+    } else if (!initialPlantationId && !selectedPlantation) {
+      setSelectedPlantation("all");
+    }
+  }, [initialPlantationId, plantations, selectedPlantation]);
 
   const montantTotal = useMemo(() => {
     if (typePaiement === "pi") return dbInitialDue;
     if (paymentMode === "custom") return Math.max(0, Number(customAmount) || 0);
-    return dbMonthlyBase * Number(paymentMode);
-  }, [typePaiement, paymentMode, customAmount, dbMonthlyBase, dbInitialDue]);
+    const months = Number(paymentMode);
+    const schedules = dbFinancialState?.mensualite?.echeancier_souscriptions;
+    if (Array.isArray(schedules) && schedules.length > 0) {
+      return schedules.reduce((sum: number, schedule: any) => {
+        const monthly = Math.max(0, Number(schedule.montant_mensuel || 0));
+        const remaining = Math.max(0, Number(schedule.mois_restants ?? months));
+        return sum + monthly * Math.min(months, remaining);
+      }, 0);
+    }
+    return dbMonthlyBase * months;
+  }, [typePaiement, paymentMode, customAmount, dbMonthlyBase, dbInitialDue, dbFinancialState]);
 
   const contractRemaining = Math.max(0, totalContract - totalPaid);
   const paymentWillSettle = contractRemaining > 0 && montantTotal >= contractRemaining;
   const kkiapayFeeRate = Math.max(0, Number(client?.portal_config?.kkiapay_mobile_money_fee_rate || 0));
   const kkiapayPricing = useMemo(() => calculateKkiapayAbsorption(montantTotal, paymentMethod, kkiapayFeeRate), [montantTotal, paymentMethod, kkiapayFeeRate]);
-  const isPiFree = typePaiement === "pi" && !!plantation && dbInitialDue <= 0;
+  const isPiFree = typePaiement === "pi" && !!plantation && dbInitialDue <= 0 && !hasFinancialSubscriptions;
 
   useEffect(() => {
     onSuccess(async (response) => {
@@ -222,8 +236,21 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
         <Card className="card-brand rounded-lg shadow-md">
           <CardContent className="p-5 space-y-4">
             <div className="flex items-center gap-2"><CreditCard className="h-5 w-5 text-primary" /><h3 className="text-base font-bold">{isPreActivation ? "Régler le paiement initial" : "Choisissez ce que vous souhaitez payer"}</h3></div>
+            <div className="space-y-2">
+              <Label>Portée du paiement</Label>
+              <Select value={selectedPlantation} onValueChange={setSelectedPlantation}>
+                <SelectTrigger className="h-11 rounded-lg"><SelectValue placeholder="Choisir le périmètre du paiement" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Compte global · toutes les souscriptions payantes</SelectItem>
+                  {plantations.filter((p: any) => p.client_id === client?.id).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.nom_plantation || p.id_unique || "Plantation"} · {Number(p.superficie_ha || 0).toLocaleString("fr-FR")} ha</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">{selectedPlantation === "all" ? "Le montant cumule les souscriptions payantes actives. Chaque échéancier conserve sa propre durée." : "Le paiement sera rattaché uniquement à cette plantation et à sa souscription."}</p>
+              {plantation?.paiement_etat?.sans_contrat_financier && <p className="text-sm text-amber-700">Cette plantation bénéficiaire n’a pas de souscription financière active. Choisissez le compte global ou une plantation payante.</p>}
+            </div>
             <div className="grid grid-cols-2 gap-2">
-              {!isPreActivation && <Button type="button" variant={typePaiement === "mensualite" ? "default" : "outline"} onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>}
+              {!isPreActivation && <Button type="button" variant={typePaiement === "mensualite" ? "default" : "outline"} onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>
+ onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>}
               {dbInitialDue > 0 && <Button type="button" variant={typePaiement === "pi" ? "default" : "outline"} onClick={() => setTypePaiement("pi")} className="h-11 rounded-lg">Paiement initial</Button>}
             </div>
 
@@ -273,7 +300,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack }: ClientPa
               <div className="grid grid-cols-2 gap-2 text-sm"><div className="rounded-lg bg-muted/40 p-3"><p className="text-muted-foreground">Débit client</p><p className="font-black text-primary">{fmt(kkiapayPricing.clientDebitAmount)}</p></div><div className="rounded-lg bg-muted/40 p-3"><p className="text-muted-foreground">Frais absorbés</p><p className="font-black">{fmt(kkiapayPricing.absorbedByAgriCapital)}</p></div></div>
             </div>}
 
-            <Button onClick={handleSubmit} disabled={loading || (!plantation && !isPreActivation) || (montantTotal <= 0 && !isPiFree)} className="w-full h-14 rounded-lg font-bold">{loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CreditCard className="h-5 w-5 mr-2" />}{isPreActivation ? "Payer le paiement initial" : isPiFree ? "Activer ma plantation (0 F)" : (isDemoAccount ? "Payer maintenant (simulation)" : "Payer maintenant")}</Button>
+            <Button onClick={handleSubmit} disabled={loading || (!plantation && selectedPlantation !== "all" && !isPreActivation) || (montantTotal <= 0 && !isPiFree)} className="w-full h-14 rounded-lg font-bold">{loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CreditCard className="h-5 w-5 mr-2" />}{isPreActivation ? "Payer le paiement initial" : isPiFree ? "Activer ma plantation (0 F)" : (isDemoAccount ? "Payer maintenant (simulation)" : "Payer maintenant")}</Button>
             <p className="text-sm text-center text-muted-foreground">{isPreActivation ? "Après confirmation du paiement initial, votre compte client sera activé automatiquement selon les conditions de votre contrat." : "Votre choix indique uniquement le montant que vous souhaitez régler maintenant. Aucun paiement futur ni échéancier n'est créé."}</p>
           </CardContent>
         </Card>
