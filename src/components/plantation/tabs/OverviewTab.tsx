@@ -11,7 +11,7 @@ export const OverviewTab = ({ plantation, client }: { plantation: any; client: a
   const items = [
     { icon: Package, label: "Formule", value: offreNom },
     { icon: Leaf, label: "Culture", value: "Palmier à huile" },
-    { icon: Ruler, label: "Superficie", value: `${plantation?.superficie_ha || 0} ha` },
+    { icon: Ruler, label: "Superficie", value: `${Number(plantation?.superficie_ha || 0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})} ha` },
     { icon: MapPin, label: "Localisation", value: plantation?.village_nom || plantation?.village || plantation?.localite || "—" },
     { icon: Calendar, label: "Date de démarrage", value: dateDemarrage ? format(new Date(dateDemarrage), "dd MMM yyyy", { locale: fr }) : "En attente" },
     { icon: Sprout, label: "Identifiant", value: plantation?.id_unique || "—" },
