@@ -2,7 +2,8 @@ import { lazy, Suspense, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, LayoutGrid, ListChecks, Sprout, Camera, FileText, MapPin, FileBarChart2, MessageSquare } from "lucide-react";
+import { ArrowLeft, LayoutGrid, ListChecks, Sprout, Camera, FileText, MapPin, FileBarChart2, MessageSquare, CreditCard } from "lucide-react";
+import { canShowPayments } from "@/utils/portalRoles";
 import logoWhiteBg from "@/assets/logo-white-bg.png";
 import { PlantationSelector } from "@/components/plantation/PlantationSelector";
 const OverviewTab = lazy(() => import("@/components/plantation/tabs/OverviewTab").then((m) => ({ default: m.OverviewTab })));
@@ -22,17 +23,22 @@ interface Props {
   plantations: any[];
   initialPlantationId?: string;
   onPlantationChange?: (id: string) => void;
+  onPayment?: (plantationId: string) => void;
   onBack: () => void;
 }
 
-const ClientPlantationHub = ({ client, plantations, initialPlantationId, onPlantationChange, onBack }: Props) => {
+const ClientPlantationHub = ({ client, plantations, initialPlantationId, onPlantationChange, onPayment, onBack }: Props) => {
   const initialId = initialPlantationId && plantations.some((p) => p.id === initialPlantationId)
     ? initialPlantationId
     : plantations[plantations.length - 1]?.id || plantations[0]?.id;
   const [selectedId, setSelectedId] = useState<string>(initialId);
   const plantation = useMemo(() => plantations.find((p) => p.id === selectedId) || plantations[0], [plantations, selectedId]);
-  const isPalmTerroir = String(client?.formule_code || "").startsWith("PALMTERROIR");
-  const formuleLabel = client?.formule_nom || client?.formule_code || client?.famille_offre || client?.offres?.nom || "Formule";
+  const selectedSubscription = plantation?.acquisition_id
+    ? (client?.financial_subscriptions || []).find((subscription: any) => subscription.id === plantation.acquisition_id)
+    : null;
+  const isPalmTerroir = String(selectedSubscription?.formule_code || selectedSubscription?.famille_offre || (!client?.has_financial_subscriptions ? client?.formule_code : "") || "").toUpperCase().startsWith("PALMTERROIR");
+  const formuleLabel = selectedSubscription?.formule_nom || selectedSubscription?.formule_code || (!client?.has_financial_subscriptions ? client?.formule_nom || client?.formule_code : "") || client?.offres?.nom || "Formule";
+  const canPaySelectedPlantation = Boolean(plantation?.acquisition_id && client?.has_financial_subscriptions) || (!client?.has_financial_subscriptions && canShowPayments(client));
 
   const baseTabs = [
     { value: "overview", icon: LayoutGrid, label: "Vue" },
@@ -63,8 +69,11 @@ const ClientPlantationHub = ({ client, plantations, initialPlantationId, onPlant
               <h1 className="text-xl sm:text-2xl font-bold text-white break-words leading-snug">{plantation?.nom_plantation || plantation?.id_unique || "—"}</h1>
               <div className="flex items-center gap-2 mt-1 flex-wrap"><Badge className="bg-white/10 border-white/20 text-white text-[9px]">{formuleLabel}</Badge>{isPalmTerroir && <span className="text-xs text-white/80">Encadrement & suivi après mise en terre</span>}</div>
             </div>
-            <div className="w-full sm:w-56 min-w-0 sm:shrink-0">
-              <PlantationSelector plantations={plantations} selectedId={selectedId} onChange={(id) => { setSelectedId(id); onPlantationChange?.(id); }} />
+            <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto sm:shrink-0">
+              <div className="min-w-0 flex-1 sm:w-56 sm:flex-none">
+                <PlantationSelector plantations={plantations.filter((p:any)=>p.client_id===client?.id)} selectedId={selectedId} onChange={(id) => { setSelectedId(id); onPlantationChange?.(id); }} />
+              </div>
+              {canPaySelectedPlantation && plantation?.acquisition_id && <Button type="button" onClick={() => onPayment?.(plantation.id)} className="shrink-0 bg-white text-[#00643C] hover:bg-white/90"><CreditCard className="mr-2 h-4 w-4" />Payer</Button>}
             </div>
           </div>
         </div>
