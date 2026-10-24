@@ -36,9 +36,10 @@ const ClientPlantationHub = ({ client, plantations, initialPlantationId, onPlant
   const selectedSubscription = plantation?.acquisition_id
     ? (client?.financial_subscriptions || []).find((subscription: any) => subscription.id === plantation.acquisition_id)
     : null;
-  const isPalmTerroir = String(selectedSubscription?.formule_code || selectedSubscription?.famille_offre || (!client?.has_financial_subscriptions ? client?.formule_code : "") || "").toUpperCase().startsWith("PALMTERROIR");
-  const formuleLabel = selectedSubscription?.formule_nom || selectedSubscription?.formule_code || (!client?.has_financial_subscriptions ? client?.formule_nom || client?.formule_code : "") || client?.offres?.nom || "Formule";
-  const canPaySelectedPlantation = Boolean(plantation?.acquisition_id && client?.has_financial_subscriptions) || (!client?.has_financial_subscriptions && canShowPayments(client));
+  const isOwnerPortal = client?.portal_primary_role === "proprietaire_foncier" || (client?.portal_roles || []).includes("proprietaire_foncier");
+  const isPalmTerroir = !isOwnerPortal && String(selectedSubscription?.formule_code || selectedSubscription?.famille_offre || (!client?.has_financial_subscriptions ? client?.formule_code : "") || "").toUpperCase().startsWith("PALMTERROIR");
+  const formuleLabel = isOwnerPortal ? "Part du propriétaire foncier" : (selectedSubscription?.formule_nom || selectedSubscription?.formule_code || (!client?.has_financial_subscriptions ? client?.formule_nom || client?.formule_code : "") || client?.offres?.nom || "Formule");
+  const canPaySelectedPlantation = canShowPayments(client) && (Boolean(plantation?.acquisition_id && client?.has_financial_subscriptions) || !client?.has_financial_subscriptions);
 
   const baseTabs = [
     { value: "overview", icon: LayoutGrid, label: "Vue" },
@@ -71,7 +72,7 @@ const ClientPlantationHub = ({ client, plantations, initialPlantationId, onPlant
             </div>
             <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto sm:shrink-0">
               <div className="min-w-0 flex-1 sm:w-56 sm:flex-none">
-                <PlantationSelector plantations={plantations.filter((p:any)=>!client?.has_financial_subscriptions || p.client_id===client?.id)} selectedId={selectedId} onChange={(id) => { setSelectedId(id); onPlantationChange?.(id); }} />
+                <PlantationSelector plantations={plantations.filter((p:any)=>!canShowPayments(client) || !client?.has_financial_subscriptions || p.client_id===client?.id)} selectedId={selectedId} onChange={(id) => { setSelectedId(id); onPlantationChange?.(id); }} />
               </div>
               {canPaySelectedPlantation && plantation?.acquisition_id && <Button type="button" onClick={() => onPayment?.(plantation.id)} className="shrink-0 bg-white text-[#00643C] hover:bg-white/90"><CreditCard className="mr-2 h-4 w-4" />Payer</Button>}
             </div>
