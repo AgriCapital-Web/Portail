@@ -31,6 +31,16 @@ describe("portal financial access", () => {
     })).toBe(false);
   });
 
+  it("allows payments for a beneficiary who also has an active paid contract", () => {
+    expect(canShowPayments({
+      portal_primary_role: "client",
+      portal_roles: ["client", "beneficiaire_particulier"],
+      type_client: "beneficiaire_particulier",
+      is_beneficiaire_particulier: true,
+      has_financial_subscriptions: true,
+    })).toBe(true);
+  });
+
   it("does not expose payments to a particular beneficiary", () => {
     expect(canShowPayments({
       portal_primary_role: "beneficiaire_particulier",
