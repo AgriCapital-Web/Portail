@@ -53,7 +53,7 @@ export default function StakeholderDashboard({client,plantations,onPlantationHub
       </CardContent></Card>
 
       {plantations.length>0&&<Card><CardHeader><CardTitle className="text-base flex items-center gap-2"><Sprout className="h-4 w-4 text-primary"/>Mes plantations</CardTitle></CardHeader><CardContent className="space-y-2">
-        {plantations.map((p:any)=><div key={p.id} className="flex items-center justify-between gap-3 rounded-xl border p-3"><div className="min-w-0"><p className="truncate text-sm font-semibold">{p.nom_plantation||p.id_unique||"Plantation"}</p><p className="text-xs text-muted-foreground">{Number(p.superficie_ha||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})} ha · {p.statut_global||"Suivi"}</p></div><Button size="sm" variant="outline" onClick={onPlantationHub}>Suivi <ArrowRight className="ml-1 h-3.5 w-3.5"/></Button></div>)}
+        {plantations.map((p:any)=><div key={p.id} className="flex items-center justify-between gap-3 rounded-xl border p-3"><div className="min-w-0"><p className="truncate text-sm font-semibold">{p.nom_plantation||p.id_unique||"Plantation"}</p><p className="text-xs text-muted-foreground">{Number(p.superficie_ha||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})} ha · {p.statut_global||"Suivi"}</p></div>{p.portal_has_source_plantation === false ? <Badge variant="outline">Activation enregistrée</Badge> : <Button size="sm" variant="outline" onClick={onPlantationHub}>Suivi <ArrowRight className="ml-1 h-3.5 w-3.5"/></Button>}</div>)}
       </CardContent></Card>}
 
     </main>
