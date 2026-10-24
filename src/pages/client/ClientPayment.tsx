@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useKkiapay } from "@/hooks/useKkiapay";
 import logoWhiteBg from "@/assets/logo-white-bg.png";
 import { formatCFA } from "@/utils/pricing";
-import { isLocalDemo } from "@/utils/portalRoles";
+import { canShowPayments, isLocalDemo } from "@/utils/portalRoles";
 import { trackEvent } from "@/utils/errorTracker";
 import { ArrowLeft, CreditCard, MapPin, AlertTriangle, Loader2, Phone, Leaf } from "lucide-react";
 
@@ -60,7 +60,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
     ? (paiements || []).filter((p:any)=>p.statut==="valide").reduce((sum:number,p:any)=>sum+Number(p.montant_paye ?? p.montant ?? 0),0)
     : Math.max(0,Number(plantation?.paiement_etat?.total_paye||0));
   const isSettled = !beneficiaryClient && ((Boolean(client?.contrat_solde_at) && !hasFinancialSubscriptions) || (totalContract > 0 && totalPaid >= totalContract));
-  const financialAllowed = !beneficiaryClient && !isSettled && (hasFinancialSubscriptions || Boolean(client?.offre_id) || Boolean(client?.paiement_personnalise?.actif) || totalContract > 0);
+  const financialAllowed = canShowPayments(client) && !beneficiaryClient && !isSettled && (hasFinancialSubscriptions || Boolean(client?.offre_id) || Boolean(client?.paiement_personnalise?.actif) || totalContract > 0);
 
   useEffect(() => {
     if (initialPlantationId && plantations.some((p: any) => p.id === initialPlantationId)) {
