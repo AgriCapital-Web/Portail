@@ -269,7 +269,7 @@ const ClientPortal = () => {
       );
     }
 
-    if (client.portal_primary_role !== "client") {
+    if (client.portal_primary_role !== "client" || client.type_client === "proprietaire_foncier" || client.is_proprietaire_foncier || (client.portal_roles || []).includes("proprietaire_foncier")) {
       return (
         <StakeholderDashboard
           client={client}
