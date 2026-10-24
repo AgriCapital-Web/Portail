@@ -249,8 +249,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
               {plantation?.paiement_etat?.sans_contrat_financier && <p className="text-sm text-amber-700">Cette plantation bénéficiaire n’a pas de souscription financière active. Choisissez le compte global ou une plantation payante.</p>}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {!isPreActivation && <Button type="button" variant={typePaiement === "mensualite" ? "default" : "outline"} onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>
- onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>}
+              {!isPreActivation && <Button type="button" variant={typePaiement === "mensualite" ? "default" : "outline"} onClick={() => setTypePaiement("mensualite")} className="h-11 rounded-lg">Mensualités</Button>}
               {dbInitialDue > 0 && <Button type="button" variant={typePaiement === "pi" ? "default" : "outline"} onClick={() => setTypePaiement("pi")} className="h-11 rounded-lg">Paiement initial</Button>}
             </div>
 
