@@ -42,6 +42,7 @@ const ClientPortal = () => {
 
   const pathname = location.pathname;
   const isPaymentReturn = pathname === "/paiement/retour";
+  const paymentPlantationId = pathname === "/paiements" ? searchParams.get("plantation_id") : null;
   const isHome = pathname === "/";
   const isDemoRoute = pathname === "/demo";
   const isPrivate = pathname !== "/";
@@ -236,9 +237,9 @@ const ClientPortal = () => {
     navigate("/", { replace: true });
   };
 
-  const goPayment = () => {
-    if (!canShowPayments(client)) return;
-    navigate("/paiements");
+  const goPayment = (plantationId?: string) => {
+    if (!canShowPayments(client) && !client?.has_financial_subscriptions) return;
+    navigate(plantationId ? `/paiements?plantation_id=${encodeURIComponent(plantationId)}` : "/paiements");
   };
 
   const renderView = () => {
@@ -262,6 +263,7 @@ const ClientPortal = () => {
           plantations={plantations}
           initialPlantationId={plantationId}
           onPlantationChange={(id) => navigate("/plantations/" + encodeURIComponent(id))}
+          onPayment={(id) => goPayment(id)}
           onBack={() => navigate("/dashboard")}
         />
       );
@@ -284,6 +286,7 @@ const ClientPortal = () => {
           client={client}
           plantations={plantations}
           paiements={paiements}
+          initialPlantationId={paymentPlantationId}
           onBack={() => navigate("/dashboard")}
         />
       );
