@@ -83,7 +83,7 @@ const ClientDashboard = ({
 
   const fmt = (m: number) => formatCFA(m);
   const customPayment = client?.paiement_personnalise?.actif ? client.paiement_personnalise : null;
-  const beneficiaryClient = Boolean(client?.is_beneficiaire_particulier || client?.type_client === "beneficiaire_particulier");
+  const beneficiaryClient = Boolean(client?.is_beneficiaire_particulier || client?.type_client === "beneficiaire_particulier") && !Boolean(client?.has_financial_subscriptions);
   const totalContract = Math.max(0, Number(client?.montant_total_contrat || 0));
   const totalPaid = (paiements || []).filter((p:any)=>p.statut==="valide").reduce((sum:number,p:any)=>sum+Number(p.montant_paye ?? p.montant ?? 0),0);
   const serverSettled = Boolean(client?.contrat_solde_at) || (totalContract > 0 && totalPaid >= totalContract);
