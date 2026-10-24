@@ -20,6 +20,17 @@ describe("portal financial access", () => {
     })).toBe(true);
   });
 
+
+  it("rejects stale client-role data when the actual account is a landowner", () => {
+    expect(canShowPayments({
+      portal_primary_role: "client",
+      portal_roles: ["client", "proprietaire_foncier"],
+      type_client: "proprietaire_foncier",
+      has_financial_subscriptions: true,
+      montant_total_contrat: 100000,
+    })).toBe(false);
+  });
+
   it("does not expose payments to a particular beneficiary", () => {
     expect(canShowPayments({
       portal_primary_role: "beneficiaire_particulier",
