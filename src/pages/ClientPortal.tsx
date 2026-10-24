@@ -238,7 +238,7 @@ const ClientPortal = () => {
   };
 
   const goPayment = (plantationId?: string) => {
-    if (!canShowPayments(client) && !client?.has_financial_subscriptions) return;
+    if (!canShowPayments(client)) return;
     navigate(plantationId ? `/paiements?plantation_id=${encodeURIComponent(plantationId)}` : "/paiements");
   };
 
