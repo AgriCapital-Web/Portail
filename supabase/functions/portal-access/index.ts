@@ -229,7 +229,7 @@ serve(async (req: Request) => {
     }
     if (action === "request_otp") {
       if (access) return json({ success: false, error: "Un code d'accès existe déjà pour ce compte.", needs_access_code_setup: false }, 409);
-      const destination = client.whatsapp || client.whatsapp_local;
+      const destination = client.whatsapp || (client.whatsapp_indicatif && client.whatsapp_local ? String(client.whatsapp_indicatif) + String(client.whatsapp_local) : client.whatsapp_local) || client.telephone || (client.telephone_indicatif && client.telephone_local ? String(client.telephone_indicatif) + String(client.telephone_local) : client.telephone_local);
       if (!destination) return json({ success: false, code: "WHATSAPP_MISSING", error: "Aucun numéro WhatsApp n'est enregistré dans votre dossier." }, 400);
       const { data: recent, error: recentError } = await supabase.from("otp_codes").select("created_at").eq("telephone", phone)
         .gte("created_at", new Date(Date.now() - 60 * 1000).toISOString()).limit(1);
@@ -250,6 +250,27 @@ serve(async (req: Request) => {
         await supabase.from("otp_codes").delete().eq("telephone", phone).eq("verified", false);
         throw sendError;
       }
+    }
+    if (action === "verify_otp") {
+      if (access) return json({ success: false, error: "Compte déjà configuré." }, 409);
+      const otp = String(body?.otp || "");
+      if (!/^\d{6}$/.test(otp)) return json({ success: false, code: "OTP_REQUIRED", error: "Saisissez le code WhatsApp à 6 chiffres." }, 400);
+      const { data: otpRow, error: otpReadError } = await supabase.from("otp_codes")
+        .select("id,code,expires_at,attempts")
+        .eq("telephone", phone).eq("verified", false)
+        .order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (otpReadError) throw otpReadError;
+      if (!otpRow || new Date(otpRow.expires_at).getTime() <= Date.now()) {
+        return json({ success: false, code: "OTP_EXPIRED", error: "Code expiré. Demandez-en un nouveau." }, 400);
+      }
+      if (Number(otpRow.attempts || 0) >= 5) {
+        return json({ success: false, code: "OTP_LOCKED", error: "Trop d'essais. Demandez un nouveau code." }, 429);
+      }
+      if (otpRow.code !== await codeHash(otp, "otp:" + phone)) {
+        await supabase.from("otp_codes").update({ attempts: Number(otpRow.attempts || 0) + 1 }).eq("id", otpRow.id);
+        return json({ success: false, code: "OTP_INVALID", error: "Code incorrect." }, 401);
+      }
+      return json({ success: true, otp_verified: true });
     }
     if (action === "setup") {
       if (access) return json({ success: false, error: "Un code d'accès existe déjà pour ce compte. Utilisez-le pour vous connecter.", needs_access_code_setup: false }, 409);
