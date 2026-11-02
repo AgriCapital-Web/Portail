@@ -101,12 +101,23 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
     }
   };
 
-  const handleOtpVerify = () => {
+  const handleOtpVerify = async () => {
     if (!/^\d{6}$/.test(otpCode)) {
-      toast({ variant: "destructive", title: "Code requis", description: "Saisissez le code WhatsApp à 6 chiffres." });
+      toast({ variant: "destructive", title: "Code requis", description: "Entrez le code à 6 chiffres." });
       return;
     }
-    setStep("setup");
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("portal-access", {
+        body: { action: "verify_otp", telephone: cleanPhone(), otp: otpCode },
+      });
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "Vérification impossible.");
+      setStep("setup");
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Code non valide", description: e.message || "Vérifiez le code et réessayez." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSetup = async () => {
@@ -276,10 +287,10 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                   <div className="space-y-3">
                     <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2 font-semibold text-primary"><ShieldCheck className="h-4 w-4" /> Vérification WhatsApp</div>
-                      <p className="mt-1">Un code à 6 chiffres a été envoyé à {otpSentTo || "votre numéro WhatsApp enregistré"}. Il est valable 10 minutes.</p>
+                      <p className="mt-1">Code envoyé à {otpSentTo || "votre WhatsApp"}. Valable 10 min.</p>
                     </div>
-                    <Input value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" maxLength={6} autoComplete="one-time-code" placeholder="••••••" className="h-14 rounded-lg text-center text-2xl tracking-[0.5em] font-semibold" onKeyDown={(e) => { if (e.key === "Enter") handleOtpVerify(); }} />
-                    <Button onClick={handleOtpVerify} disabled={loading || otpCode.length !== 6} className="h-14 w-full rounded-lg bg-primary text-primary-foreground">Vérifier le code <ArrowRight className="ml-2 h-5 w-5" /></Button>
+                    <Input value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" maxLength={6} autoComplete="one-time-code" placeholder="••••••" className="h-14 rounded-lg text-center text-2xl tracking-[0.5em] font-semibold" onKeyDown={(e) => { if (e.key === "Enter") void handleOtpVerify(); }} />
+                    <Button onClick={handleOtpVerify} disabled={loading || otpCode.length !== 6} className="h-14 w-full rounded-lg bg-primary text-primary-foreground">{loading ? "Vérification…" : "Vérifier le code"} <ArrowRight className="ml-2 h-5 w-5" /></Button>
                     <Button type="button" variant="ghost" onClick={async () => {
                       setLoading(true);
                       try {
@@ -287,9 +298,9 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                         if (error || !data?.success) throw new Error(data?.error || error?.message || "Renvoi impossible.");
                         setOtpSentTo(data.telephone_masque || otpSentTo);
                         setOtpCode("");
-                        toast({ title: "Code renvoyé", description: "Un nouveau code a été envoyé par WhatsApp." });
+                        toast({ title: "Code renvoyé", description: "Vérifiez WhatsApp." });
                       } catch (e: any) {
-                        toast({ variant: "destructive", title: "Envoi impossible", description: e.message });
+                        toast({ variant: "destructive", title: "Échec d’envoi", description: e.message });
                       } finally { setLoading(false); }
                     }} disabled={loading} className="w-full">Renvoyer le code WhatsApp</Button>
                   </div>
