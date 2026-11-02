@@ -279,6 +279,7 @@ serve(async (req: Request) => {
       if (consumeError) throw consumeError;
       if (!consumedOtp) return json({ success: false, code: "OTP_ALREADY_USED", error: "Ce code a déjà été utilisé. Demandez un nouveau code WhatsApp." }, 409);
 
+
       const salt = randomHex(16), hash = await codeHash(code, salt);
       const { error } = await supabase.from("client_portal_access_codes").insert({
         client_id: client.id, code_hash: hash, code_salt: salt, failed_attempts: 0, locked_until: null,
