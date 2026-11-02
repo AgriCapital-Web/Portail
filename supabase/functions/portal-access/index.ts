@@ -38,7 +38,7 @@ function maskPhone(value: unknown) {
   return digits.length >= 4 ? "•••• " + digits.slice(-4) : null;
 }
 
-async function resolveWhatsAppSenderSession(): Promise<{ apiKey: string; senderSessionId: string; senderPhone: string }> {
+async function resolveWhatsAppSenderSession(admin: any): Promise<{ apiKey: string; senderSessionId: string; senderPhone: string }> {
   const [{ data: apiKey, error: apiError }, { data: configuredPhone, error: phoneError }] = await Promise.all([
     admin.rpc("senndo_get_secret", { p_name: "senndo_api_key" }),
     admin.rpc("senndo_get_secret", { p_name: "senndo_whatsapp_sender_phone" }),
@@ -141,10 +141,10 @@ async function resolveWhatsAppSenderSession(): Promise<{ apiKey: string; senderS
   return { apiKey, senderSessionId, senderPhone: String(configuredPhone).trim() };
 }
 
-async function sendOtpWhatsApp(to: string, code: string, clientId: string) {
-  const session = await resolveWhatsAppSenderSession();
+async function sendOtpWhatsApp(supabase: any, to: string, code: string, clientId: string) {
+  const session = await resolveWhatsAppSenderSession(supabase);
   const recipient = normalizeWhatsAppRecipient(to);
-  const message = "AgriCapital : votre code de vérification pour créer votre premier accès au portail est " + code + ". Il expire dans 10 minutes. Ne le partagez avec personne.";
+  const message = "AgriCapital | Code portail : " + code + ". Valable 10 min. Ne le partagez pas.";
   const response = await fetch("https://api.senndo.com/v1/messages", {
     method: "POST",
     headers: { authorization: "Bearer " + session.apiKey, "content-type": "application/json", accept: "application/json" },
@@ -244,7 +244,7 @@ serve(async (req: Request) => {
       });
       if (insertError) throw insertError;
       try {
-        const messageId = await sendOtpWhatsApp(destination, otp, client.id);
+        const messageId = await sendOtpWhatsApp(supabase, destination, otp, client.id);
         return json({ success: true, otp_sent: true, channel: "whatsapp", message_id: messageId, telephone_masque: maskPhone(destination) });
       } catch (sendError) {
         await supabase.from("otp_codes").delete().eq("telephone", phone).eq("verified", false);
@@ -258,7 +258,7 @@ serve(async (req: Request) => {
 
       // First-access identity proof: OTP must have been issued to the registered WhatsApp contact.
       const otp = String(body?.otp || "");
-      if (!/^\d{6}$/.test(otp)) return json({ success: false, code: "OTP_REQUIRED", error: "Saisissez le code de vérification reçu par WhatsApp." }, 400);
+      if (!/^\d{6}$/.test(otp)) return json({ success: false, code: "OTP_REQUIRED", error: "Saisissez le code WhatsApp à 6 chiffres." }, 400);
       const { data: otpRow, error: otpReadError } = await supabase.from("otp_codes")
         .select("id,code,expires_at,attempts")
         .eq("telephone", phone).eq("verified", false)
