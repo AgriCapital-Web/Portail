@@ -144,7 +144,7 @@ async function resolveWhatsAppSenderSession(admin: any): Promise<{ apiKey: strin
 async function sendOtpWhatsApp(supabase: any, to: string, code: string, clientId: string) {
   const session = await resolveWhatsAppSenderSession(supabase);
   const recipient = normalizeWhatsAppRecipient(to);
-  const message = "AgriCapital | Code portail : " + code + ". Valable 10 min. Ne le partagez pas.";
+  const message = "*AgriCapital* | Code à votre espace client : *" + code + "*. Valable 10 min. Ne le partagez pas.";
   const response = await fetch("https://api.senndo.com/v1/messages", {
     method: "POST",
     headers: { authorization: "Bearer " + session.apiKey, "content-type": "application/json", accept: "application/json" },
