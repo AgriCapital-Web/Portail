@@ -14,7 +14,7 @@ import { usePortalReferences } from "@/hooks/usePortalReferences";
 interface ClientHomeProps {
   onLogin: (client: any, plantations: any[], paiements: any[]) => void;
 }
-type Step = "phone" | "setup" | "login";
+type Step = "phone" | "otp" | "setup" | "login";
 
 const ClientHome = ({ onLogin }: ClientHomeProps) => {
   const { toast } = useToast();
@@ -23,6 +23,8 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
   const [step, setStep] = useState<Step>("phone");
   const [accessCode, setAccessCode] = useState("");
   const [confirmCode, setConfirmCode] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSentTo, setOtpSentTo] = useState("");
   const [clientName, setClientName] = useState("");
   const [supportOpen, setSupportOpen] = useState(false);
   const { data: countries = [], isLoading: countriesLoading, isError: countriesError } = usePortalReferences("pays_telephone");
@@ -74,7 +76,15 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
           setClientName(data.nom_complet || "");
           setAccessCode("");
           setConfirmCode("");
-          setStep(data.needs_access_code_setup ? "setup" : "login");
+          setOtpCode("");
+          if (data.needs_access_code_setup) {
+            const request = await supabase.functions.invoke("portal-access", { body: { action: "request_otp", telephone: phone } });
+            if (request.error || !request.data?.success) throw new Error(request.data?.error || request.error?.message || "Impossible d'envoyer le code WhatsApp.");
+            setOtpSentTo(request.data.telephone_masque || "");
+            setStep("otp");
+          } else {
+            setStep("login");
+          }
         }
         return;
       }
@@ -91,6 +101,14 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
     }
   };
 
+  const handleOtpVerify = () => {
+    if (!/^\d{6}$/.test(otpCode)) {
+      toast({ variant: "destructive", title: "Code requis", description: "Saisissez le code WhatsApp à 6 chiffres." });
+      return;
+    }
+    setStep("setup");
+  };
+
   const handleSetup = async () => {
     if (!/^\d{4}$/.test(accessCode) || accessCode !== confirmCode) {
       toast({ variant: "destructive", title: "Code invalide", description: "Les deux champs doivent contenir le même code à 4 chiffres." });
@@ -99,7 +117,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("portal-access", {
-        body: { action: "setup", telephone: cleanPhone(), code: accessCode, confirm_code: confirmCode },
+        body: { action: "setup", telephone: cleanPhone(), otp: otpCode, code: accessCode, confirm_code: confirmCode },
       });
 
       // Un essai précédent peut avoir enregistré le code avant qu'une étape secondaire échoue.
@@ -155,6 +173,8 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
     setStep("phone");
     setAccessCode("");
     setConfirmCode("");
+    setOtpCode("");
+    setOtpSentTo("");
     setClientName("");
     setTelephone("");
   };
@@ -173,7 +193,8 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
         if (e.key !== "Enter") return;
         e.preventDefault();
         if (loading) return;
-        if (step === "setup") void handleSetup();
+        if (step === "otp") void handleOtpVerify();
+        else if (step === "setup") void handleSetup();
         else if (step === "login") void handleLogin();
       }}
     />
@@ -247,6 +268,29 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                     <Button type="button" variant="outline" onClick={handleDemoEnter} className="min-h-10 h-auto py-2.5 w-full rounded-xl border-2 border-[#E89C31] bg-white text-[#00643C] font-semibold shadow-sm whitespace-normal text-[clamp(0.875rem,1.3vw,1rem)] leading-snug transition-colors duration-150 hover:bg-white hover:text-[#00643C] hover:border-[#E89C31] hover:shadow-sm focus-visible:bg-white focus-visible:text-[#00643C] focus-visible:border-[#E89C31] focus-visible:ring-2 focus-visible:ring-[#E89C31] focus-visible:ring-offset-2 active:bg-white active:text-[#00643C] active:border-[#E89C31]">
                       <Sparkles className="mr-2 h-5 w-5" /> Accéder à la démonstration
                     </Button>
+                  </div>
+                )}
+
+                {step === "otp" && (
+                  <div className="space-y-3">
+                    <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2 font-semibold text-primary"><ShieldCheck className="h-4 w-4" /> Vérification WhatsApp</div>
+                      <p className="mt-1">Un code à 6 chiffres a été envoyé à {otpSentTo || "votre numéro WhatsApp enregistré"}. Il est valable 10 minutes.</p>
+                    </div>
+                    <Input value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" maxLength={6} autoComplete="one-time-code" placeholder="••••••" className="h-14 rounded-lg text-center text-2xl tracking-[0.5em] font-semibold" onKeyDown={(e) => { if (e.key === "Enter") handleOtpVerify(); }} />
+                    <Button onClick={handleOtpVerify} disabled={loading || otpCode.length !== 6} className="h-14 w-full rounded-lg bg-primary text-primary-foreground">Vérifier le code <ArrowRight className="ml-2 h-5 w-5" /></Button>
+                    <Button type="button" variant="ghost" onClick={async () => {
+                      setLoading(true);
+                      try {
+                        const { data, error } = await supabase.functions.invoke("portal-access", { body: { action: "request_otp", telephone: cleanPhone() } });
+                        if (error || !data?.success) throw new Error(data?.error || error?.message || "Renvoi impossible.");
+                        setOtpSentTo(data.telephone_masque || otpSentTo);
+                        setOtpCode("");
+                        toast({ title: "Code renvoyé", description: "Un nouveau code a été envoyé par WhatsApp." });
+                      } catch (e: any) {
+                        toast({ variant: "destructive", title: "Envoi impossible", description: e.message });
+                      } finally { setLoading(false); }
+                    }} disabled={loading} className="w-full">Renvoyer le code WhatsApp</Button>
                   </div>
                 )}
 
