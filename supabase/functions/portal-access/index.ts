@@ -255,6 +255,30 @@ serve(async (req: Request) => {
       if (access) return json({ success: false, error: "Un code d'accès existe déjà pour ce compte. Utilisez-le pour vous connecter.", needs_access_code_setup: false }, 409);
       const code = String(body?.code || ""), confirm = String(body?.confirm_code || "");
       if (!/^\d{4}$/.test(code) || code !== confirm) return json({ success: false, error: "Le code doit contenir exactement 4 chiffres et les deux champs doivent être identiques." }, 400);
+
+      // First-access identity proof: OTP must have been issued to the registered WhatsApp contact.
+      const otp = String(body?.otp || "");
+      if (!/^\d{6}$/.test(otp)) return json({ success: false, code: "OTP_REQUIRED", error: "Saisissez le code de vérification reçu par WhatsApp." }, 400);
+      const { data: otpRow, error: otpReadError } = await supabase.from("otp_codes")
+        .select("id,code,expires_at,attempts")
+        .eq("telephone", phone).eq("verified", false)
+        .order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (otpReadError) throw otpReadError;
+      if (!otpRow || new Date(otpRow.expires_at).getTime() <= Date.now()) {
+        return json({ success: false, code: "OTP_EXPIRED", error: "Code de vérification expiré. Demandez un nouveau code WhatsApp." }, 400);
+      }
+      if (Number(otpRow.attempts || 0) >= 5) {
+        return json({ success: false, code: "OTP_LOCKED", error: "Trop de tentatives. Demandez un nouveau code WhatsApp." }, 429);
+      }
+      if (otpRow.code !== await codeHash(otp, "otp:" + phone)) {
+        await supabase.from("otp_codes").update({ attempts: Number(otpRow.attempts || 0) + 1 }).eq("id", otpRow.id);
+        return json({ success: false, code: "OTP_INVALID", error: "Code de vérification incorrect." }, 401);
+      }
+      const { data: consumedOtp, error: consumeError } = await supabase.from("otp_codes")
+        .update({ verified: true }).eq("id", otpRow.id).eq("verified", false).select("id").maybeSingle();
+      if (consumeError) throw consumeError;
+      if (!consumedOtp) return json({ success: false, code: "OTP_ALREADY_USED", error: "Ce code a déjà été utilisé. Demandez un nouveau code WhatsApp." }, 409);
+
       const salt = randomHex(16), hash = await codeHash(code, salt);
       const { error } = await supabase.from("client_portal_access_codes").insert({
         client_id: client.id, code_hash: hash, code_salt: salt, failed_attempts: 0, locked_until: null,
