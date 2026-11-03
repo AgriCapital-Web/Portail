@@ -14,8 +14,6 @@
     <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://client.agricapital.ci/" />
     <link rel="alternate" hreflang="fr-CI" href="https://client.agricapital.ci/" />
-    
-    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#00643C" />
     <meta name="application-name" content="AC_Clients" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -26,21 +24,14 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="msapplication-TileColor" content="#00643C" />
     <meta name="msapplication-tap-highlight" content="no" />
-    
-    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest-client.json" />
-    
-    <!-- Icônes officielles AgriCapital : favicon, navigateur et installation iOS -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/images/logo-light.png?v=20261017" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/images/logo-light.png?v=20261017" />
-    <link rel="shortcut icon" type="image/png" href="/images/logo-light.png?v=20261017" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/logo-light.png?v=20261017" />
-
-    <!-- Google Search Console verification (auto-generated via GSC connector) -->
+    <!-- Icônes PWA basées sur le logo propre au Portail client -->
+    <link rel="icon" type="image/svg+xml" href="/pwa-icon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/logo-light.png" />
+    <link rel="shortcut icon" type="image/svg+xml" href="/pwa-icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/logo-light.png" />
     <meta name="google-site-verification" content="w0IFcNYKTjy1GgGr9H3IDceKjkgnC435MAT8o6mmSBI" />
     <meta name="google-site-verification" content="BYA9x7aQAvyzACeZgwccx2pNp52k0-kuaOvOhSrJLtw" />
-
-    <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="AgriCapital | Espace Client — Suivi de vos plantations" />
     <meta property="og:description" content="Espace Client AgriCapital : suivez vos plantations de palmier à huile, consultez les rapports et médias terrain, échangez avec votre équipe et gérez vos paiements en toute sécurité." />
@@ -48,22 +39,16 @@
     <meta property="og:image" content="https://client.agricapital.ci/images/logo-light.png" />
     <meta property="og:image:secure_url" content="https://client.agricapital.ci/images/logo-light.png" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:alt" content="Logo officiel AgriCapital — Espace Client" />
+    <meta property="og:image:alt" content="Logo du Portail client AgriCapital" />
     <meta property="og:site_name" content="AgriCapital · Espace Client" />
     <meta property="og:locale" content="fr_CI" />
     <link rel="image_src" href="https://client.agricapital.ci/images/logo-light.png" />
-
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="AgriCapital | Espace Client — Suivi de vos plantations" />
     <meta name="twitter:description" content="Espace Client AgriCapital : suivez vos plantations de palmier à huile, consultez les rapports et médias terrain, échangez avec votre équipe et gérez vos paiements en toute sécurité." />
     <meta name="twitter:url" content="https://client.agricapital.ci/" />
     <meta name="twitter:image" content="https://client.agricapital.ci/images/logo-light.png" />
-    <meta name="twitter:image:alt" content="Logo officiel AgriCapital — Espace Client" />
-    
-    <!-- Favicon officiel AgriCapital défini dans le bloc d'icônes versionné ci-dessus -->
-    
-    <!-- Structured Data JSON-LD -->
+    <meta name="twitter:image:alt" content="Logo du Portail client AgriCapital" />
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -75,11 +60,7 @@
           "url": "https://agricapital.ci/",
           "logo": "https://client.agricapital.ci/images/logo-light.png",
           "founder": { "@type": "Person", "name": "Inocent KOFFI — AgriCapital" },
-          "address": {
-            "@type": "PostalAddress",
-            "addressCountry": "CI",
-            "addressLocality": "Daloa"
-          },
+          "address": { "@type": "PostalAddress", "addressCountry": "CI", "addressLocality": "Daloa" },
           "contactPoint": {
             "@type": "ContactPoint",
             "telephone": "+225-05-64-55-17-17",
@@ -112,9 +93,9 @@
       ]
     }
     </script>
-</head>
+  </head>
   <body>
-<script src="https://cdn.kkiapay.me/k.js" defer></script>
+    <script src="https://cdn.kkiapay.me/k.js" defer></script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
