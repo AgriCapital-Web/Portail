@@ -1,10 +1,10 @@
-const CACHE_NAME = "agricapital-client-shell-v11";
+const CACHE_NAME = "agricapital-client-shell-v12";
 const APP_ORIGIN = self.location.origin;
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(["/", "/index.html", "/manifest-client.json"]);
+    await cache.addAll(["/", "/index.html", "/manifest-client.json", "/favicon.svg?v=20261108", "/pwa-icon.svg?v=20261108", "/icons/icon-192x192.png?v=20261108"]);
     await self.skipWaiting();
   })());
 });
@@ -82,6 +82,10 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== APP_ORIGIN) return;
   if (event.request.mode === "navigate" || url.pathname === "/index.html") {
     event.respondWith(fetch(event.request, { cache: "no-store" }).catch(() => caches.match("/index.html")));
+    return;
+  }
+  if (url.pathname === "/favicon.svg" || url.pathname === "/pwa-icon.svg" || url.pathname === "/icons/icon-192x192.png") {
+    event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
     return;
   }
   if (url.pathname.startsWith("/assets/")) {

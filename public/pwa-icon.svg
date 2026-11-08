@@ -1,4 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#00643C"/>
-  <image href="/images/logo-light.png" x="56" y="56" width="400" height="400" preserveAspectRatio="xMidYMid meet"/>
+<defs>
+ <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00643C"/><stop offset=".58" stop-color="#13834B"/><stop offset="1" stop-color="#E89C31"/></linearGradient>
+ <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B7D96B"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="112" fill="#00643C"/>
+<g fill="none" stroke="#E89C31" stroke-width="19" stroke-linecap="round"><path d="M94 196c-39 34-39 86 0 120"/><path d="M126 214c-25 23-25 61 0 84"/><path d="M156 232c-13 13-13 35 0 48"/></g>
+<rect x="171" y="138" width="250" height="236" rx="43" fill="url(#brand)"/><rect x="196" y="164" width="200" height="34" rx="12" fill="#FFFFFF"/>
+<path d="M220 269c38-43 96-55 151-25-44 6-76 31-101 70-13-22-28-36-50-45z" fill="#FFFFFF"/>
+<path d="M231 316c43-38 81-59 142-72-42 37-82 69-131 92-4-7-7-13-11-20z" fill="url(#leaf)"/>
+<path d="M224 272c30 10 53 30 67 60" fill="none" stroke="#00643C" stroke-width="8" stroke-linecap="round" opacity=".9"/>
+<path d="M179 406c-38-27-68-63-84-108 51 12 91 43 119 92-10 9-22 14-35 16z" fill="url(#leaf)"/>
+<path d="M187 398c-22-31-48-58-81-83" fill="none" stroke="#00643C" stroke-width="7" stroke-linecap="round"/>
 </svg>

@@ -38,7 +38,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
   const [paymentMethod, setPaymentMethod] = useState<ClientPaymentMethod>("momo");
   const [paymentMode, setPaymentMode] = useState<PaymentMode>("1");
   const [customAmount, setCustomAmount] = useState("");
-  const paymentContextRef = useRef<{ reference: string; pricing: ReturnType<typeof calculateKkiapayAbsorption> } | null>(null);
+  const paymentContextRef = useRef<{ reference: string } | null>(null);
 
   const plantation = useMemo(() => selectedPlantation === "all" ? undefined : plantations.find((p) => p.id === selectedPlantation), [selectedPlantation, plantations]);
   const dbFinancialState = selectedPlantation === "all" ? (client?.paiement_etat || {}) : (plantation?.paiement_etat || {});
@@ -97,7 +97,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
       if (!context?.reference) return;
       try {
         const { data, error } = await supabase.functions.invoke("create-payment", {
-          body: { action: "confirm", portal_token: sessionStorage.getItem("agri_portal_access_token"), reference: context.reference, kkiapay_transaction_id: response.transactionId, client_debit_amount: context.pricing.clientDebitAmount, fee_absorption_rate: context.pricing.feeRate }
+          body: { action: "confirm", portal_token: sessionStorage.getItem("agri_portal_access_token"), reference: context.reference, kkiapay_transaction_id: response.transactionId }
         });
         if (error || !data?.success) throw new Error(data?.error || error?.message || "Confirmation du paiement impossible.");
         if (paymentWillSettle) {
@@ -168,7 +168,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
     }
     setLoading(true);
     const reference = "PAY-" + Date.now() + "-" + Math.random().toString(36).slice(2, 9).toUpperCase();
-    paymentContextRef.current = { reference, pricing: kkiapayPricing };
+    paymentContextRef.current = { reference };
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
         body: {
@@ -185,11 +185,13 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
       });
       if (error || !data?.success) throw new Error(data?.error || error?.message || "Création du paiement impossible.");
       const opened = await openPayment({
-        amount: kkiapayPricing.widgetAmount,
+        amount: Number(data.kkiapay_widget_amount ?? kkiapayPricing.widgetAmount),
         email: client.email || undefined,
         phone: client.telephone,
         name: client.nom_complet || ((client.prenoms || "") + " " + (client.nom || "")).trim(),
         paymentMethods: [paymentMethod],
+        partnerId: reference,
+        callback: `${window.location.origin}/paiement/retour?reference=${encodeURIComponent(reference)}`,
         data: { reference, paiement_id: data.paiement.id, type: typePaiement, client_debit_amount: kkiapayPricing.clientDebitAmount }
       });
       if (!opened) throw new Error("Impossible d'ouvrir le paiement sécurisé.");

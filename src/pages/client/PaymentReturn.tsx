@@ -28,40 +28,30 @@ const PaymentReturn = ({ onBack }: PaymentReturnProps) => {
       if (!reference && !transactionId) { setStatus('pending'); return; }
       try {
         const { data: statusData } = await supabase.functions.invoke('create-payment', {
-          body: { action: 'status', reference, transaction_id: transactionId }
+          body: { action: 'status', portal_token: sessionStorage.getItem('agri_portal_access_token'), reference, transaction_id: transactionId }
         });
         const db = statusData?.paiement;
         if (db) {
           setPaiement(db);
           if (db.statut === 'valide') { setStatus('success'); return; }
-          if (db.statut === 'echec' || db.statut === 'rejete') { setStatus('error'); return; }
+          if (db.statut === 'echec' || db.statut === 'echoue' || db.statut === 'rejete') { setStatus('error'); return; }
           if (transactionId) {
             try {
-              const { data, error } = await supabase.functions.invoke('kkiapay-verify-transaction', { body: { transactionId } });
-              if (!error && data?.success) {
-                const ok = data.transaction?.isPaymentSuccessful || data.transaction?.status?.toLowerCase() === 'success';
-                const fail = ['failed', 'canceled'].includes(data.transaction?.status?.toLowerCase());
-                if (ok || fail) {
-                  const s = ok ? 'valide' : 'echec';
-                  if (ok) {
-                    await supabase.functions.invoke('create-payment', {
-                      body: {
-                        action: 'confirm',
-                        reference: db.reference,
-                        kkiapay_transaction_id: transactionId,
-                        montant_paye: db.metadata?.client_debit_amount ?? db.montant,
-                        method: data.transaction?.source || data.transaction?.method || null,
-                        fees: data.transaction?.fees || 0,
-                        kkiapay_amount: data.transaction?.amount ?? null,
-                        client_debit_amount: db.metadata?.client_debit_amount ?? db.montant,
-                        fee_absorption_rate: db.metadata?.fee_absorption_rate ?? 0,
-                      }
-                    });
-                  }
-                  setPaiement({ ...db, statut: s, montant_paye: ok ? (db.metadata?.client_debit_amount ?? db.montant) : 0 });
-
-                  setStatus(ok ? 'success' : 'error'); return;
+              // Le portail n'a pas de session Supabase Auth. La confirmation
+              // passe par create-payment, qui vérifie le token portail
+              // et contrôle la transaction directement auprès de KKiaPay.
+              const { data: confirmation, error: confirmationError } = await supabase.functions.invoke('create-payment', {
+                body: {
+                  action: 'confirm',
+                  portal_token: sessionStorage.getItem('agri_portal_access_token'),
+                  reference: db.reference || reference,
+                  kkiapay_transaction_id: transactionId,
                 }
+              });
+              if (!confirmationError && confirmation?.success) {
+                setPaiement({ ...db, statut: 'valide', montant_paye: db.montant });
+                setStatus('success');
+                return;
               }
             } catch {}
           }

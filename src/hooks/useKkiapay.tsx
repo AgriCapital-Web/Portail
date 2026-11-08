@@ -26,6 +26,7 @@ export interface KkiapayConfig {
   paymentMethods?: ('momo' | 'card')[];
   paymentmethod?: ('momo' | 'card')[];
   position?: 'left' | 'right' | 'center';
+  partnerId?: string;
 }
 
 export interface KkiapayResponse {
@@ -99,6 +100,7 @@ export const useKkiapay = () => {
         if (timeoutTimer) window.clearTimeout(timeoutTimer);
         scriptLoaded.current = ok;
         if (ok) attachListeners();
+        else loadPromise.current = null;
         resolve(ok);
       };
 
