@@ -263,7 +263,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                   <p className="mt-1.5 text-[clamp(0.875rem,1.5vw,1rem)] leading-snug text-muted-foreground">
                     {step === "phone"
                       ? "Connectez-vous avec le numéro utilisé lors de votre contractualisation."
-                      : step === "otp" ? "Saisissez le code de vérification reçu par {otpChannel === "whatsapp" ? "WhatsApp" : "SMS"}."
+                      : step === "otp" ? "Saisissez le code de vérification reçu par " + (otpChannel === "whatsapp" ? "WhatsApp" : "SMS") + "."
                       : step === "setup"
                         ? "Créez votre code d'accès personnel."
                           : welcomeText}
