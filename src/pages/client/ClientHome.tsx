@@ -16,6 +16,21 @@ interface ClientHomeProps {
 }
 type Step = "phone" | "otp" | "setup" | "login";
 
+// Supabase renvoie une FunctionsHttpError pour les réponses HTTP 4xx/5xx.
+// Lire le corps JSON permet d'afficher le vrai motif plutôt que le message générique du SDK.
+const getFunctionErrorMessage = async (error: any, fallback: string) => {
+  try {
+    const response = error?.context?.clone?.();
+    if (response) {
+      const payload = await response.json();
+      if (typeof payload?.error === "string" && payload.error.trim()) return payload.error;
+    }
+  } catch {
+    // Le corps peut être absent ou ne pas être du JSON.
+  }
+  return error?.message || fallback;
+};
+
 const ClientHome = ({ onLogin }: ClientHomeProps) => {
   const { toast } = useToast();
   const [telephone, setTelephone] = useState<string | undefined>("");
@@ -169,7 +184,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
       if (error || !data?.success) throw new Error(data?.error || error?.message || "Code incorrect.");
       await loadRealClient(data.access_token);
     } catch (e: any) {
-      toast({ variant: "destructive", title: "Connexion refusée", description: e.message || "Code incorrect." });
+      toast({ variant: "destructive", title: "Connexion refusée", description: await getFunctionErrorMessage(e, "Code incorrect.") });
     } finally {
       setLoading(false);
     }
