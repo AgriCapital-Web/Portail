@@ -9,6 +9,7 @@ export const createDemoAccount = (telephone="+2250700000000") => {
   const steps:any[]=[
     ["validation_parcelle","Validation de la parcelle","termine",-20,"Parcelle validée après contrôle."],
     ["defrichage","Défrichage","termine",-17,"Défrichage terminé."],
+    ["nettoyage","Nettoyage","termine",-15,"Nettoyage du terrain terminé."],
     ["piquetage","Piquetage","termine",-14,"Piquetage et alignement contrôlés."],
     ["trouaison","Trouaison","termine",-10,"Trouaison terminée."],
     ["mise_en_terre","Mise en terre","termine",-6,"Mise en terre réalisée et contrôlée."],
@@ -20,9 +21,9 @@ export const createDemoAccount = (telephone="+2250700000000") => {
   ].map(([key,label,statut,days,commentaire])=>({key,type:key,label,statut,date_realisation:statut==="pending"?null:d(Number(days)),commentaire}));
   const reports:any[]=Array.from({length:6},(_,i)=>{const n=i+1;return{id:"DEMO-R-"+n,titre:"Rapport de suivi technique M"+n,date_visite:d(-30+i*5),statut:"valide",client_visible:true,etat_plantation:n===6?"Reprise satisfaisante, suivi en cours.":"Phase de mise en place suivie.",contenu:"Rapport de démonstration M"+n+" : observations, travaux réalisés et recommandations.",prochaine_intervention:d(14),medias:[{id:"DEMO-RM-"+n,media_type:"photo",url:demoMediaUrls[i],nom_fichier:"suivi-m"+n+".jpg",description:"Photo terrain M"+n} ]};});
   const plantation:any={
-    id:plantationId,id_unique:"PL-DEMO-001",nom:"Plantation démonstration",nom_plantation:"PalmTerroir — Démonstration Gonaté",
-    statut:"active",statut_global:"actif",formule_code:"PALMTERROIR",formule_nom:"PalmTerroir",superficie_ha:2.5,superficie_activee:2.5,
-    surface_reellement_plantee:2.5,nombre_plants_prevus:358,nombre_plants_mis_en_terre:358,nombre_plants_remplaces:0,densite_plants:143,taux_reussite:98.6,
+    id:plantationId,id_unique:"PL-DEMO-001",nom:"Plantation démonstration",nom_plantation:"PalmInvest — Démonstration Gonaté",
+    statut:"active",statut_global:"actif",formule_code:"PALMINVEST",formule_nom:"PalmInvest",superficie_ha:1,superficie_activee:1,
+    surface_reellement_plantee:1,nombre_plants_prevus:143,nombre_plants_mis_en_terre:143,nombre_plants_remplaces:0,densite_plants:143,taux_reussite:98.6,
     variete:"Tenera sélectionnée",date_activation:d(-20),date_plantation:d(-6),derniere_visite:d(-2),derniere_intervention:"Contrôle de reprise",
     prochaine_intervention:"Dans 14 jours",village:"Gonaté",village_nom:"Gonaté — zone agricole démonstration",localite:"GONATÉ",
     latitude:6.97,longitude:-6.22,localisation_gps_lat:6.97,localisation_gps_lng:-6.22,etapes:steps,interventions:steps,
@@ -45,12 +46,12 @@ export const createDemoAccount = (telephone="+2250700000000") => {
     id:"DEMO-FRONT-ONLY",id_unique:"DEMO-FRONT",nom_complet:"Compte DÉMO AgriCapital",civilite:"M",nom_famille:"DÉMO",prenoms:"AgriCapital",
     telephone,telephone_local:telephone.replace(/^\+\d{1,3}/,""),telephone_indicatif:telephone.match(/^\+\d{1,3}/)?.[0]||"+225",
     email:"demo@agricapital.ci",localite:"GONATÉ",type_client:"client_officiel",statut:"actif",statut_global:"a_jour",compte_actif:true,demo:true,_demo:true,
-    portal_primary_role:"client",offre_id:"DEMO-OFFRE-PALMTERROIR",prochaine_echeance:d(10),
-    paiement_initial_montant:250000,
-    paiement_etat:{paiement_initial:{montant:250000,paye:250000,solde:0},mensualite:{montant:12500,montant_a_payer:12500,montant_arriere:0,jours_retard:0,hectares_actifs:2.5}},
-    total_hectares:2.5,nombre_plantations:1,phase_actuelle:"reprise",famille_offre:"PalmTerroir",formule_code:"PALMTERROIR",formule_nom:"PalmTerroir",
-    offres:{nom:"PalmTerroir",formule_nom:"PalmTerroir"},photo_profil_url:demoProfileUrl,numero_contrat:"DEMO-AC-2026",
-    parcelle:{id:"DEMO-PARCELLE-001",id_unique:"PAR-DEMO-001",nom:"Parcelle démonstration — Gonaté",surface_totale_ha:2.5,village:"Gonaté",village_nom:"Gonaté — zone agricole démonstration",localisation_gps_lat:6.97,localisation_gps_lng:-6.22,statut:"actif"},
+    portal_primary_role:"client",offre_id:"DEMO-OFFRE-PALMINVEST",prochaine_echeance:d(10),
+    paiement_initial_montant:90700,montant_pi_total:90700,mensualite_montant:56600,montant_total_contrat:2467900,
+    paiement_etat:{paiement_initial:{montant:90700,paye:90700,solde:0},mensualite:{montant:56600,montant_a_payer:56600,montant_arriere:0,jours_retard:0,hectares_actifs:1}},
+    total_hectares:1,nombre_plantations:1,phase_actuelle:"reprise",famille_offre:"PalmInvest",formule_code:"PALMINVEST",formule_nom:"PalmInvest",
+    offres:{nom:"PalmInvest",formule_nom:"PalmInvest"},photo_profil_url:demoProfileUrl,numero_contrat:"DEMO-AC-2026",
+    parcelle:{id:"DEMO-PARCELLE-001",id_unique:"PAR-DEMO-001",nom:"Parcelle démonstration — Gonaté",surface_totale_ha:1,village:"Gonaté",village_nom:"Gonaté — zone agricole démonstration",localisation_gps_lat:6.97,localisation_gps_lng:-6.22,statut:"actif"},
     parcelles:[],attributions:[],proprietaire:null,documents:plantation.documents,technique_interventions:steps,
     technique_progression:steps.map((e:any)=>({key:e.key,label:e.label,statut:e.statut,date:e.date_realisation,commentaire:e.commentaire})),
     commercial:{...demoCommercial,photo:demoCommercial.photo_url},
@@ -63,8 +64,8 @@ export const createDemoAccount = (telephone="+2250700000000") => {
     ]
   };
   const paiements:any[]=[
-    {id:"DEMO-P1",reference:"DEMO-PI-001",type_paiement:"PI",montant:250000,montant_paye:250000,statut:"valide",mode_paiement:"Mobile Money",plantation_id:plantationId,date_paiement:d(-20),created_at:d(-20)},
-    ...[1,2].map(n=>({id:"DEMO-P"+(n+1),reference:"DEMO-MENS-00"+n,type_paiement:"MENSUALITE",montant:12500,montant_paye:12500,statut:"valide",mode_paiement:"Mobile Money",plantation_id:plantationId,date_paiement:d(-20+n*10),created_at:d(-20+n*10)}))
+    {id:"DEMO-P1",reference:"DEMO-PI-001",type_paiement:"PI",montant:90700,montant_paye:90700,statut:"valide",mode_paiement:"Mobile Money",plantation_id:plantationId,date_paiement:d(-20),created_at:d(-20)},
+    ...[1,2].map(n=>({id:"DEMO-P"+(n+1),reference:"DEMO-MENS-00"+n,type_paiement:"MENSUALITE",montant:56600,montant_paye:56600,statut:"valide",mode_paiement:"Mobile Money",plantation_id:plantationId,date_paiement:d(-20+n*10),created_at:d(-20+n*10)}))
   ];
   return {demo_code:DEMO_ACCESS_CODE,client,plantations:[plantation],paiements};
 };
