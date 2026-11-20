@@ -40,6 +40,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
   const [confirmCode, setConfirmCode] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [otpSentTo, setOtpSentTo] = useState("");
+  const [otpChannel, setOtpChannel] = useState<"sms" | "whatsapp">("sms");
   const [clientName, setClientName] = useState("");
   const [supportOpen, setSupportOpen] = useState(false);
   const { data: countries = [], isLoading: countriesLoading, isError: countriesError } = usePortalReferences("pays_telephone");
@@ -94,8 +95,9 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
           setOtpCode("");
           if (data.needs_access_code_setup) {
             const request = await supabase.functions.invoke("portal-access", { body: { action: "request_otp", telephone: phone } });
-            if (request.error || !request.data?.success) throw new Error(request.data?.error || request.error?.message || "Impossible d'envoyer le code SMS.");
+            if (request.error || !request.data?.success) throw new Error(request.data?.error || request.error?.message || "Impossible d'envoyer le code de vérification.");
             setOtpSentTo(request.data.telephone_masque || "");
+            setOtpChannel(request.data.canal === "whatsapp" ? "whatsapp" : "sms");
             setStep("otp");
           } else {
             setStep("login");
@@ -235,9 +237,9 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
         <meta name="description" content="Accédez à votre espace client AgriCapital." />
       </Helmet>
 
-      <main className="client-login-page min-h-[100svh] w-full bg-background overflow-x-hidden">
-        <div className="min-h-[100svh] w-full grid grid-cols-1 md:grid-cols-[52%_48%]">
-          <aside className="relative hidden md:flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[#00643C] px-8 py-10 text-white">
+      <main className="client-login-page h-[100svh] min-h-[100dvh] w-full overflow-hidden bg-background">
+        <div className="grid h-full min-h-0 w-full grid-cols-1 md:grid-cols-[52%_48%]">
+          <aside className="relative hidden h-full min-h-0 md:flex flex-col items-center justify-center overflow-hidden bg-[#00643C] px-8 py-6 text-white">
             <div aria-hidden="true" className="pointer-events-none absolute left-[11%] top-[12%] h-40 w-40 rounded-full border border-white/5" />
             <div aria-hidden="true" className="pointer-events-none absolute bottom-[15%] right-[9%] h-64 w-64 rounded-full border border-white/5" />
             <div className="relative z-10 flex w-full max-w-xl flex-col items-center text-center">
@@ -247,21 +249,21 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
             </div>
             <p className="absolute bottom-6 left-4 right-4 text-center text-xs text-white/70">© 2026 AgriCapital - Investir la terre. Cultiver l’avenir.</p>
           </aside>
-          <section className="flex min-h-[100svh] items-center justify-center bg-background px-4 py-6 sm:px-6 md:px-10 lg:px-14">
-            <div className="w-full max-w-xl min-w-0">
-              <div className="mb-4 flex justify-center md:hidden">
-                <img src={logoWhiteBg} alt="AgriCapital" className="client-login-logo h-auto w-[clamp(240px,52vw,420px)] max-w-full max-h-[clamp(100px,20vh,170px)] object-contain mix-blend-multiply" />
+          <section className="flex h-full min-h-0 items-center justify-center overflow-hidden bg-background px-3 py-2 sm:px-6 sm:py-3 md:px-8 lg:px-10">
+            <div className="flex max-h-full w-full min-w-0 max-w-lg flex-col justify-center">
+              <div className="mb-1 flex shrink-0 justify-center md:hidden">
+                <img src={logoWhiteBg} alt="AgriCapital" className="client-login-logo h-[clamp(42px,8svh,72px)] w-auto max-w-[52vw] object-contain mix-blend-multiply" />
               </div>
-              <section className="client-login-card flex flex-col justify-center rounded-2xl border border-border bg-card p-3 min-[420px]:p-4 sm:p-5 lg:p-6 shadow-xl min-w-0">
-                <div className="mb-3 sm:mb-4 text-center">
-                  <div className="mx-auto mb-2 flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-muted text-primary">
+              <section className="client-login-card flex min-h-0 flex-col justify-center overflow-hidden rounded-2xl border border-border bg-card p-2.5 min-[420px]:p-3 sm:p-4 lg:p-5 shadow-xl">
+                <div className="mb-2 shrink-0 text-center">
+                  <div className="mx-auto mb-1 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-muted text-primary">
                     {step === "phone" ? <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6" /> : <KeyRound className="h-5 w-5 sm:h-6 sm:w-6" />}
                   </div>
                   <h1 className="text-[clamp(1.55rem,5vw,2rem)] leading-tight font-bold text-primary">Votre espace client</h1>
                   <p className="mt-1.5 text-[clamp(0.875rem,1.5vw,1rem)] leading-snug text-muted-foreground">
                     {step === "phone"
                       ? "Connectez-vous avec le numéro utilisé lors de votre contractualisation."
-                      : step === "otp" ? "Saisissez le code de vérification reçu par SMS."
+                      : step === "otp" ? "Saisissez le code de vérification reçu par {otpChannel === "whatsapp" ? "WhatsApp" : "SMS"}."
                       : step === "setup"
                         ? "Créez votre code d'accès personnel."
                           : welcomeText}
@@ -301,8 +303,8 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                 {step === "otp" && (
                   <div className="space-y-3">
                     <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2 font-semibold text-primary"><ShieldCheck className="h-4 w-4" /> Vérification SMS</div>
-                      <p className="mt-1">Code envoyé par SMS au {otpSentTo || "numéro enregistré"}. Valable 10 min.</p>
+                      <div className="flex items-center gap-2 font-semibold text-primary"><ShieldCheck className="h-4 w-4" /> Vérification {otpChannel === "whatsapp" ? "WhatsApp" : "SMS"}</div>
+                      <p className="mt-1">Code envoyé par {otpChannel === "whatsapp" ? "WhatsApp" : "SMS"} au {otpSentTo || "numéro enregistré"}. Valable 10 min.</p>
                     </div>
                     <Input value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" maxLength={6} autoComplete="one-time-code" placeholder="••••••" className="h-14 rounded-lg text-center text-2xl tracking-[0.5em] font-semibold" onKeyDown={(e) => { if (e.key === "Enter") void handleOtpVerify(); }} />
                     <Button onClick={handleOtpVerify} disabled={loading || otpCode.length !== 6} className="h-14 w-full rounded-lg bg-primary text-primary-foreground">{loading ? "Vérification…" : "Vérifier le code"} <ArrowRight className="ml-2 h-5 w-5" /></Button>
@@ -312,12 +314,13 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                         const { data, error } = await supabase.functions.invoke("portal-access", { body: { action: "request_otp", telephone: cleanPhone() } });
                         if (error || !data?.success) throw new Error(data?.error || error?.message || "Renvoi impossible.");
                         setOtpSentTo(data.telephone_masque || otpSentTo);
+                        setOtpChannel(data.canal === "whatsapp" ? "whatsapp" : "sms");
                         setOtpCode("");
-                        toast({ title: "Code renvoyé", description: "Vérifiez vos SMS." });
+                        toast({ title: "Code renvoyé", description: data.canal === "whatsapp" ? "Vérifiez vos messages WhatsApp." : "Vérifiez vos SMS." });
                       } catch (e: any) {
                         toast({ variant: "destructive", title: "Échec d’envoi", description: e.message });
                       } finally { setLoading(false); }
-                    }} disabled={loading} className="w-full">Renvoyer le code SMS</Button>
+                    }} disabled={loading} className="w-full">Renvoyer le code {otpChannel === "whatsapp" ? "WhatsApp" : "SMS"}</Button>
                   </div>
                 )}
 
@@ -348,14 +351,14 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                   </div>
                 )}
 
-                <div className="mt-3 sm:mt-4 border-t border-border pt-2.5 sm:pt-3 text-center">
+                <div className="mt-2 shrink-0 border-t border-border pt-2 text-center">
                   <p className="mb-2 text-xs sm:text-sm text-muted-foreground">Besoin d'aide pour accéder à votre espace ?</p>
                   <Button variant="outline" onClick={() => setSupportOpen(true)} className="h-9 rounded-lg border-border text-primary">
                     <MessageCircle className="mr-2 h-4 w-4" /> Contacter AgriCapital
                   </Button>
                 </div>
               </section>
-              <p className="mt-3 flex items-center justify-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
+              <p className="mt-1 flex shrink-0 items-center justify-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5" /> Accès sécurisé à votre espace personnel
               </p>
             </div>
