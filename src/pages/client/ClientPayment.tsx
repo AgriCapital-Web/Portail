@@ -32,8 +32,17 @@ const calculateKkiapayAbsorption = (amount: number, method: ClientPaymentMethod,
 const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPlantationId }: ClientPaymentProps) => {
   const { toast } = useToast();
   const { openPayment, onSuccess, onFailed, onClose } = useKkiapay();
-  const [typePaiement, setTypePaiement] = useState<"pi" | "mensualite">(() => client?.pre_activation ? "pi" : "mensualite");
-  const [selectedPlantation, setSelectedPlantation] = useState(initialPlantationId || "all");
+  const [typePaiement, setTypePaiement] = useState<"pi" | "mensualite">(() => {
+    const initialPlantation = initialPlantationId
+      ? plantations.find((item: any) => item.id === initialPlantationId)
+      : plantations.length === 1 ? plantations[0] : null;
+    const paymentState = initialPlantation?.paiement_etat || client?.paiement_etat || {};
+    const initialBalance = Number(paymentState?.paiement_initial?.solde || 0);
+    return client?.pre_activation || initialBalance > 0 ? "pi" : "mensualite";
+  });
+  const [selectedPlantation, setSelectedPlantation] = useState(
+    initialPlantationId || (plantations.length === 1 ? plantations[0].id : "all")
+  );
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<ClientPaymentMethod>("momo");
   const [paymentMode, setPaymentMode] = useState<PaymentMode>("1");
@@ -65,6 +74,8 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
   useEffect(() => {
     if (initialPlantationId && plantations.some((p: any) => p.id === initialPlantationId)) {
       setSelectedPlantation(initialPlantationId);
+    } else if (!initialPlantationId && plantations.length === 1) {
+      setSelectedPlantation(plantations[0].id);
     } else if (!initialPlantationId && !selectedPlantation) {
       setSelectedPlantation("all");
     }
