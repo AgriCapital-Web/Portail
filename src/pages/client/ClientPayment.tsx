@@ -17,6 +17,19 @@ import { ArrowLeft, CreditCard, MapPin, AlertTriangle, Loader2, Phone, Leaf } fr
 interface ClientPaymentProps { client: any; plantations: any[]; paiements: any[]; onBack: () => void; initialPlantationId?: string | null; }
 type PaymentMode = "1" | "3" | "6" | "9" | "12" | "custom";
 type ClientPaymentMethod = "momo" | "card";
+
+const getFunctionErrorMessage = async (error: any, fallback: string) => {
+  try {
+    const response = error?.context?.clone?.();
+    if (response) {
+      const payload = await response.json();
+      if (typeof payload?.error === "string" && payload.error.trim()) return payload.error;
+    }
+  } catch {
+    // Le corps peut être absent ou ne pas être du JSON.
+  }
+  return error?.message || fallback;
+};
 const calculateKkiapayAbsorption = (amount: number, method: ClientPaymentMethod, feeRate: number) => {
   const clientDebitAmount = Math.max(0, Math.round(amount || 0));
   if (method === "card") return { clientDebitAmount, widgetAmount: clientDebitAmount, estimatedFees: 0, feeRate: 0, absorbedByAgriCapital: 0 };
@@ -194,7 +207,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
           metadata: { payment_provider: "kkiapay", source: "client_portal", selection: paymentMode }
         }
       });
-      if (error || !data?.success) throw new Error(data?.error || error?.message || "Création du paiement impossible.");
+      if (error || !data?.success) throw new Error(data?.error || await getFunctionErrorMessage(error, "Création du paiement impossible."));
       const opened = await openPayment({
         amount: Number(data.kkiapay_widget_amount ?? kkiapayPricing.widgetAmount),
         email: client.email || undefined,
