@@ -1,10 +1,10 @@
-const CACHE_NAME = "agricapital-client-shell-v12";
+const CACHE_NAME = "agricapital-client-shell-v13";
 const APP_ORIGIN = self.location.origin;
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(["/", "/index.html", "/manifest-client.json", "/favicon.svg?v=20261108", "/pwa-icon.svg?v=20261108", "/icons/icon-192x192.png?v=20261108"]);
+    await cache.addAll(["/", "/index.html", "/manifest-client.json", "/favicon.svg?v=20261120-2", "/pwa-icon.svg?v=20261120-2", "/logo-agricapital.png?v=20261120-2", "/icons/icon-portail.png?v=20261120-2"]);
     await self.skipWaiting();
   })());
 });
@@ -50,8 +50,8 @@ self.addEventListener("push", (event) => {
     }
     await self.registration.showNotification(title, {
       body,
-      icon: payload.icon || "/icons/icon-192x192.png",
-      badge: payload.badge || "/icons/icon-192x192.png",
+      icon: payload.icon || "/icons/icon-portail.png",
+      badge: payload.badge || "/icons/icon-portail.png",
       tag,
       renotify: false,
       data,
@@ -84,7 +84,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(event.request, { cache: "no-store" }).catch(() => caches.match("/index.html")));
     return;
   }
-  if (url.pathname === "/favicon.svg" || url.pathname === "/pwa-icon.svg" || url.pathname === "/icons/icon-192x192.png") {
+  if (url.pathname === "/favicon.svg" || url.pathname === "/pwa-icon.svg" || url.pathname === "/icons/icon-portail.png" || url.pathname === "/logo-agricapital.png") {
     event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
     return;
   }
