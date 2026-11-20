@@ -139,7 +139,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
 
   const handleSetup = async () => {
     if (!/^\d{4}$/.test(accessCode) || accessCode !== confirmCode) {
-      toast({ variant: "destructive", title: "Code invalide", description: "Les deux champs doivent contenir le même code à 4 chiffres." });
+      toast({ variant: "destructive", title: "Code invalide", description: "Les deux champs doivent contenir le même PIN personnel à 4 chiffres." });
       return;
     }
     setLoading(true);
@@ -228,7 +228,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
     />
   );
 
-  const welcomeText = clientName ? "Bienvenue, " + clientName + "." : "Saisissez votre code d'accès à 4 chiffres.";
+  const welcomeText = clientName ? "Bienvenue, " + clientName + "." : "Saisissez votre PIN personnel à 4 chiffres.";
 
   return (
     <>
@@ -328,12 +328,12 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                   <div className="space-y-3">
                     <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2 font-semibold text-primary"><Sparkles className="h-4 w-4 text-primary" /> Première connexion</div>
-                      <p className="mt-1">Choisissez un code à 4 chiffres pour vos prochaines connexions.</p>
+                      <p className="mt-1">Choisissez votre PIN personnel à 4 chiffres pour vos prochaines connexions.</p>
                     </div>
-                    <div><label className="mb-2 block text-sm font-semibold text-primary">Nouveau code</label>{codeInput(accessCode, setAccessCode)}</div>
-                    <div><label className="mb-2 block text-sm font-semibold text-primary">Confirmer le code</label>{codeInput(confirmCode, setConfirmCode)}</div>
+                    <div><label className="mb-2 block text-sm font-semibold text-primary">Créer mon PIN personnel</label>{codeInput(accessCode, setAccessCode)}</div>
+                    <div><label className="mb-2 block text-sm font-semibold text-primary">Confirmer mon PIN personnel</label>{codeInput(confirmCode, setConfirmCode)}</div>
                     <Button onClick={() => void handleSetup()} disabled={loading} className="h-14 w-full rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-[#005331] hover:text-white focus-visible:bg-[#005331] focus-visible:text-white active:bg-[#00452A]">
-                      {loading ? "Création…" : <>Créer mon accès <CheckCircle2 className="ml-2 h-5 w-5" /></>}
+                      {loading ? "Création…" : <>Valider mon PIN personnel <CheckCircle2 className="ml-2 h-5 w-5" /></>}
                     </Button>
                   </div>
                 )}
@@ -342,7 +342,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                   <div className="space-y-5">
                     <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
                       <Lock className="mx-auto mb-2 h-5 w-5 text-primary" />
-                      Saisissez votre code d'accès à 4 chiffres.
+                      Saisissez votre PIN personnel à 4 chiffres.
                     </div>
                     {codeInput(accessCode, setAccessCode)}
                     <Button onClick={() => void handleLogin()} disabled={loading} className="h-14 w-full rounded-lg bg-primary text-primary-foreground transition-colors duration-150 hover:bg-[#005331] hover:text-white focus-visible:bg-[#005331] focus-visible:text-white active:bg-[#00452A]">
