@@ -15,9 +15,20 @@ const normalizeStatus = (value: any) => {
 export const ProgressionTab = ({ plantation, client }: { plantation: any; client: any }) => {
   const isDemo = client?.demo === true || sessionStorage.getItem("agri_demo") === "1";
   const { data: crmReferences = [], isLoading: loading, error } = usePortalReferences("etape_plantation", !isDemo);
-  const references = isDemo
+  const selectedSubscription = plantation?.acquisition_id
+    ? (client?.financial_subscriptions || []).find((subscription: any) => subscription.id === plantation.acquisition_id)
+    : null;
+  const offerFamily = String(
+    selectedSubscription?.famille_offre || selectedSubscription?.formule_code ||
+    plantation?.formule_code || client?.famille_offre || client?.formule_code || ""
+  ).toUpperCase();
+  const managedLandPreparation = offerFamily.startsWith("PALMINVEST") || offerFamily.startsWith("TERRAPALM");
+  const allReferences = isDemo
     ? (plantation?.etapes || []).map((step: any, index: number) => ({ code: step.key || step.type, libelle: step.label, ordre: index, metadata: {} }))
     : crmReferences;
+  const references = allReferences.filter((ref: any) =>
+    !["defrichage", "nettoyage"].includes(String(ref.code || "")) || managedLandPreparation
+  );
   const source: any[] = plantation?.etapes?.length ? plantation.etapes : plantation?.interventions || [];
   const etapes = useMemo(() => references.map((ref:any) => {
     const aliases = ref.code === "mise_en_terre" ? ["mise_en_terre","planting"] : [ref.code];
