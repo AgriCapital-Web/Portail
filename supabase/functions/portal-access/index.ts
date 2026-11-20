@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
+import { SenndoClient } from "npm:@senndo/sdk@1.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,144 +19,6 @@ function normalizePhone(value: unknown) {
   if (national.length === 9 && national.startsWith("0")) return national.slice(1);
   return hasIvoryCoastCode ? national : national.replace(/^0+/, "");
 }
-function normalizeWhatsAppRecipient(value: string): string {
-  const raw = value.trim();
-  const digits = raw.replace(/\D/g, "");
-  if (!digits) throw new Error("Numéro WhatsApp destinataire invalide.");
-  let normalized = "";
-  if (raw.startsWith("+")) normalized = "+" + digits;
-  else if (raw.startsWith("00")) normalized = "+" + digits.slice(2);
-  else if (digits.startsWith("225")) normalized = "+" + digits;
-  else if (digits.length === 10 && /^0[157]\d{8}$/.test(digits)) normalized = "+225" + digits;
-  else if (digits.length === 8) normalized = "+225" + digits;
-  else throw new Error("Le numéro WhatsApp destinataire doit être au format international, par exemple +2250700000000.");
-  if (!/^\+[1-9]\d{7,14}$/.test(normalized)) throw new Error("Numéro WhatsApp destinataire invalide.");
-  return normalized;
-}
-
-function maskPhone(value: unknown) {
-  const digits = String(value ?? "").replace(/\D/g, "");
-  return digits.length >= 4 ? "•••• " + digits.slice(-4) : null;
-}
-
-async function resolveWhatsAppSenderSession(admin: any): Promise<{ apiKey: string; senderSessionId: string; senderPhone: string }> {
-  const [{ data: apiKey, error: apiError }, { data: configuredPhone, error: phoneError }] = await Promise.all([
-    admin.rpc("senndo_get_secret", { p_name: "senndo_api_key" }),
-    admin.rpc("senndo_get_secret", { p_name: "senndo_whatsapp_sender_phone" }),
-  ]);
-  if (apiError || typeof apiKey !== "string" || !apiKey) throw new Error("Clé API Senndo non configurée");
-  if (phoneError || typeof configuredPhone !== "string" || !configuredPhone.trim()) throw new Error("Numéro de session WhatsApp Senndo non configuré en base.");
-
-  const response = await fetch("https://api.senndo.com/v1/wa/sessions", {
-    method: "GET",
-    headers: { authorization: "Bearer " + apiKey, accept: "application/json" },
-    signal: AbortSignal.timeout(15000),
-  });
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error("Impossible de lire les sessions WhatsApp Senndo (HTTP " + response.status + ").");
-
-  const asArray = (value: any): any[] => Array.isArray(value) ? value : value && typeof value === "object" ? Object.values(value) : [];
-  const rawSessions = [
-    ...asArray(payload),
-    ...asArray(payload?.sessions),
-    ...asArray(payload?.data?.sessions),
-    ...asArray(payload?.data),
-    ...asArray(payload?.items),
-    ...asArray(payload?.results),
-    ...asArray(payload?.data?.items),
-    ...asArray(payload?.data?.results),
-    ...asArray(payload?.session),
-    ...asArray(payload?.data?.session),
-  ];
-  const seenSessions = new Set<any>();
-  const sessions = rawSessions
-    .filter((item: any) => item && typeof item === "object" && !seenSessions.has(item) && (seenSessions.add(item), true))
-    .map((item: any) => {
-      const nested = item.session && typeof item.session === "object" ? item.session
-        : item.data?.session && typeof item.data.session === "object" ? item.data.session : null;
-      return nested ? {
-        ...item, ...nested,
-        id: nested.id ?? item.id,
-        sessionId: nested.sessionId ?? nested.session_id ?? item.sessionId ?? item.session_id,
-        senderSessionId: nested.senderSessionId ?? nested.sender_session_id ?? item.senderSessionId ?? item.sender_session_id,
-        uuid: nested.uuid ?? item.uuid,
-      } : item;
-    });
-
-  const nestedObjects = (root: any, depth = 0): any[] => {
-    if (!root || typeof root !== "object" || depth > 5) return [];
-    return [root, ...Object.values(root).flatMap((value: any) => nestedObjects(value, depth + 1))];
-  };
-  const technicalSessionId = (session: any): string => {
-    const objects = nestedObjects(session);
-    const preferred = [
-      "senderSessionId", "sender_session_id", "sessionId", "session_id",
-      "uniqueSessionId", "unique_session_id", "sessionKey", "session_key",
-      "sessionUid", "session_uid", "sessionIdentifier", "session_identifier",
-      "instanceId", "instance_id", "deviceId", "device_id", "sid", "uuid", "id",
-    ];
-    for (const key of preferred) {
-      const value = objects.map((object: any) => object?.[key]).find((candidate: any) =>
-        (typeof candidate === "string" && candidate.trim()) ||
-        (typeof candidate === "number" && Number.isFinite(candidate)));
-      if (value !== undefined) return String(value).trim();
-    }
-    return "";
-  };
-  const normalizePhone = (value: unknown) => {
-    const rawPhone = String(value ?? "").split("@")[0].split(":")[0].replace(/\D/g, "");
-    if (!rawPhone) return "";
-    const national = rawPhone.startsWith("225") ? rawPhone.slice(3) : rawPhone;
-    if (national.length === 10 && /^0[157]\d{8}$/.test(national)) return "225" + national.slice(-8);
-    if (national.length === 8) return "225" + national;
-    return rawPhone;
-  };
-  const phoneValues = (session: any) => [
-    session?.phoneNumber, session?.phone_number, session?.phone, session?.displayPhoneNumber,
-    session?.display_phone_number, session?.number, session?.jid, session?.user?.id,
-    session?.user?.jid, session?.me?.id, session?.me?.jid, session?.account?.phone,
-    session?.account?.phoneNumber, session?.profile?.phone, session?.whatsapp?.phone,
-    session?.session?.phoneNumber, session?.session?.phone_number, session?.session?.user?.id,
-    session?.session?.me?.id, session?.creds?.me?.id, session?.authState?.creds?.me?.id,
-  ].filter((value) => (typeof value === "string" || typeof value === "number") && String(value).trim());
-  const statusOf = (session: any) => String(
-    session?.status ?? session?.state ?? session?.connectionStatus ?? session?.connection_status ??
-    session?.connection?.status ?? session?.session?.status ?? ""
-  ).trim().toLowerCase();
-  const connected = sessions.filter((session: any) => ["connected", "open", "ready", "authenticated"].includes(statusOf(session)));
-  const senderDigits = normalizePhone(configuredPhone);
-  if (!senderDigits) throw new Error("Le numéro de session WhatsApp Senndo configuré est invalide.");
-  const matches = connected.filter((session: any) => phoneValues(session).some((value: unknown) => normalizePhone(value) === senderDigits));
-
-  // Senndo peut omettre le téléphone d'une session. Si une seule session est connectée,
-  // elle est non ambiguë et peut être utilisée; plusieurs sessions exigent une correspondance exacte.
-  const session = matches.length === 1 ? matches[0] : (matches.length === 0 && connected.length === 1 ? connected[0] : null);
-  const senderSessionId = session ? technicalSessionId(session) : "";
-  if (!session || !senderSessionId) {
-    throw new Error(connected.length === 0
-      ? "Aucune session WhatsApp connectée n’a été trouvée dans Senndo."
-      : connected.length > 1 && matches.length !== 1
-        ? "Plusieurs sessions WhatsApp sont connectées sans correspondance unique avec le numéro configuré."
-        : "La session WhatsApp est connectée, mais Senndo ne fournit pas son identifiant technique.");
-  }
-  return { apiKey, senderSessionId, senderPhone: String(configuredPhone).trim() };
-}
-
-async function sendOtpWhatsApp(supabase: any, to: string, code: string, clientId: string) {
-  const session = await resolveWhatsAppSenderSession(supabase);
-  const recipient = normalizeWhatsAppRecipient(to);
-  const message = "*AgriCapital* | Code à votre espace client : *" + code + "*. Valable 10 min. Ne le partagez pas.";
-  const response = await fetch("https://api.senndo.com/v1/messages", {
-    method: "POST",
-    headers: { authorization: "Bearer " + session.apiKey, "content-type": "application/json", accept: "application/json" },
-    body: JSON.stringify({ channel: "whatsapp_baileys", to: recipient, text: message, senderSessionId: session.senderSessionId, idempotencyKey: "portal-setup-otp:" + clientId + ":" + crypto.randomUUID() }),
-    signal: AbortSignal.timeout(30000),
-  });
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error("Échec de l'envoi WhatsApp Senndo (HTTP " + response.status + "). " + String(payload?.message || payload?.error || "").slice(0, 240));
-  return payload?.id ?? payload?.messageId ?? payload?.message?.id ?? null;
-}
-
 function randomHex(bytes = 16) {
   const a = new Uint8Array(bytes);
   crypto.getRandomValues(a);
@@ -197,6 +60,29 @@ async function findClient(supabase: any, phone: string) {
     try { return normalizePhone(value) === phone; } catch { return false; }
   })) || null;
 }
+function maskPhone(value: unknown) {
+  const d = String(value ?? "").replace(/\D/g, "");
+  return d.length >= 4 ? "•••• " + d.slice(-4) : null;
+}
+function smsDestination(client: any) {
+  const pairs = [[client.telephone_indicatif, client.telephone_local], [client.whatsapp_indicatif, client.whatsapp_local]];
+  for (const [ind, loc] of pairs) if (ind && loc) {
+    const dial = String(ind).replace(/\D/g, "");
+    let national = String(loc).replace(/\D/g, "");
+    if (dial !== "225") national = national.replace(/^0+/, "");
+    return "+" + dial + national;
+  }
+  const raw = String(client.telephone || client.whatsapp || client.telephone_local || "").replace(/\D/g, "").replace(/^00/, "");
+  if (!raw) return null;
+  return "+" + (raw.length <= 10 ? "225" + raw : raw);
+}
+async function sendOtpSms(supabase: any, to: string, code: string) {
+  const { data: apiKey } = await supabase.rpc("senndo_get_secret", { p_name: "senndo_api_key" });
+  if (typeof apiKey !== "string" || !apiKey) throw new Error("SMS provider not configured");
+  const senndo = new SenndoClient({ apiKey, baseUrl: "https://api.senndo.com", timeoutMs: 30000, maxRetries: 1, userAgent: "AgriCapital-Portal/1.0" });
+  await senndo.sendMessage({ channel: "sms", to, senderId: "AgriCapital", text: "AgriCapital : votre code de verification portail est " + code + ". Valable 10 minutes. Ne le partagez pas.", idempotencyKey: crypto.randomUUID() });
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
@@ -212,7 +98,7 @@ serve(async (req: Request) => {
     const isBeneficiary = client.type_client === "beneficiaire_particulier";
     const isPreActivation = !client.compte_actif && client.validation_statut === "valide" && !client.is_internal && !isDemo && !isBeneficiary;
     if (!client.compte_actif && !isDemo && !isBeneficiary && !isPreActivation) {
-      return json({ success: false, code: "CLIENT_NOT_READY", error: "Votre dossier client doit être validé avant l’accès au portail." }, 403);
+      return json({ success: false, code: "CLIENT_NOT_READY", error: "Votre dossier client doit être validé avant l’accès au portail." });
     }
     const { data: access, error: accessError } = await supabase.from("client_portal_access_codes")
       .select("id,locked_until,last_verified_at").eq("client_id", client.id).maybeSingle();
@@ -221,93 +107,51 @@ serve(async (req: Request) => {
     if (action === "inspect") {
       if (isDemo) {
         const token = await issueSession(supabase, client.id);
-        return json({ success: true, demo: true, demo_code: "2026", access_token: token, client_id: client.id,
-          telephone: client.telephone || client.whatsapp || client.telephone_local || client.whatsapp_local, nom_complet: client.nom_complet });
+        return json({ success: true, demo: true, demo_code: "2026", access_token: token });
       }
-      return json({ success: true, demo: false, telephone_masque: maskPhone(client.whatsapp || client.whatsapp_local || client.telephone || client.telephone_local),
+      // Never disclose client identity before the caller proves control of the phone or knows the code.
+      return json({ success: true, demo: false, telephone_masque: maskPhone(client.telephone || client.whatsapp || client.telephone_local),
         needs_access_code_setup: !access, locked_until: access?.locked_until || null, pre_activation: isPreActivation, otp_required_for_setup: !access });
     }
     if (action === "request_otp") {
-      if (access) return json({ success: false, error: "Un code d'accès existe déjà pour ce compte.", needs_access_code_setup: false }, 409);
-      const destination = client.whatsapp || (client.whatsapp_indicatif && client.whatsapp_local ? String(client.whatsapp_indicatif) + String(client.whatsapp_local) : client.whatsapp_local) || client.telephone || (client.telephone_indicatif && client.telephone_local ? String(client.telephone_indicatif) + String(client.telephone_local) : client.telephone_local);
-      if (!destination) return json({ success: false, code: "WHATSAPP_MISSING", error: "Aucun numéro WhatsApp n'est enregistré dans votre dossier." }, 400);
-      const { data: recent, error: recentError } = await supabase.from("otp_codes").select("created_at").eq("telephone", phone)
+      if (access) return json({ success: false, error: "Un code d'accès existe déjà pour ce compte.", needs_access_code_setup: false });
+      const dest = smsDestination(client);
+      if (!dest) return json({ success: false, error: "Aucun numéro joignable n'est enregistré pour ce dossier." });
+      const { data: recent } = await supabase.from("otp_codes").select("created_at").eq("telephone", phone)
         .gte("created_at", new Date(Date.now() - 60 * 1000).toISOString()).limit(1);
-      if (recentError) throw recentError;
-      if (recent?.length) return json({ success: false, code: "OTP_RATE_LIMIT", error: "Un code vient d'être demandé. Patientez une minute avant de recommencer." }, 429);
+      if (recent && recent.length) return json({ success: false, error: "Un code vient d'être envoyé. Patientez une minute avant d'en demander un autre." });
       const otp = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
-      const { error: deleteError } = await supabase.from("otp_codes").delete().eq("telephone", phone).eq("verified", false);
-      if (deleteError) throw deleteError;
-      const { error: insertError } = await supabase.from("otp_codes").insert({
-        telephone: phone, code: await codeHash(otp, "otp:" + phone),
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), verified: false, attempts: 0
-      });
-      if (insertError) throw insertError;
-      try {
-        const messageId = await sendOtpWhatsApp(supabase, destination, otp, client.id);
-        return json({ success: true, otp_sent: true, channel: "whatsapp", message_id: messageId, telephone_masque: maskPhone(destination) });
-      } catch (sendError) {
-        await supabase.from("otp_codes").delete().eq("telephone", phone).eq("verified", false);
-        throw sendError;
-      }
-    }
-    if (action === "verify_otp") {
-      if (access) return json({ success: false, error: "Compte déjà configuré." }, 409);
-      const otp = String(body?.otp || "");
-      if (!/^\d{6}$/.test(otp)) return json({ success: false, code: "OTP_REQUIRED", error: "Saisissez le code WhatsApp à 6 chiffres." }, 400);
-      const { data: otpRow, error: otpReadError } = await supabase.from("otp_codes")
-        .select("id,code,expires_at,attempts")
-        .eq("telephone", phone).eq("verified", false)
-        .order("created_at", { ascending: false }).limit(1).maybeSingle();
-      if (otpReadError) throw otpReadError;
-      if (!otpRow || new Date(otpRow.expires_at).getTime() <= Date.now()) {
-        return json({ success: false, code: "OTP_EXPIRED", error: "Code expiré. Demandez-en un nouveau." }, 400);
-      }
-      if (Number(otpRow.attempts || 0) >= 5) {
-        return json({ success: false, code: "OTP_LOCKED", error: "Trop d'essais. Demandez un nouveau code." }, 429);
-      }
-      if (otpRow.code !== await codeHash(otp, "otp:" + phone)) {
-        await supabase.from("otp_codes").update({ attempts: Number(otpRow.attempts || 0) + 1 }).eq("id", otpRow.id);
-        return json({ success: false, code: "OTP_INVALID", error: "Code incorrect." }, 401);
-      }
-      return json({ success: true, otp_verified: true });
+      await supabase.from("otp_codes").delete().eq("telephone", phone).eq("verified", false);
+      const { error: otpErr } = await supabase.from("otp_codes").insert({ telephone: phone, code: await codeHash(otp, "otp:" + phone),
+        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), verified: false, attempts: 0 });
+      if (otpErr) throw otpErr;
+      await sendOtpSms(supabase, dest, otp);
+      return json({ success: true, otp_sent: true, telephone_masque: maskPhone(dest) });
     }
     if (action === "setup") {
-      if (access) return json({ success: false, error: "Un code d'accès existe déjà pour ce compte. Utilisez-le pour vous connecter.", needs_access_code_setup: false }, 409);
+      if (access) return json({ success: false, error: "Un code d'accès existe déjà pour ce compte. Utilisez-le pour vous connecter.", needs_access_code_setup: false });
       const code = String(body?.code || ""), confirm = String(body?.confirm_code || "");
-      if (!/^\d{4}$/.test(code) || code !== confirm) return json({ success: false, error: "Le code doit contenir exactement 4 chiffres et les deux champs doivent être identiques." }, 400);
-
-      // First-access identity proof: OTP must have been issued to the registered WhatsApp contact.
+      if (!/^\d{4}$/.test(code) || code !== confirm) return json({ success: false, error: "Le code doit contenir exactement 4 chiffres et les deux champs doivent être identiques." });
+      // Proof of phone ownership: a one-time SMS code sent to the client's registered number.
       const otp = String(body?.otp || "");
-      if (!/^\d{6}$/.test(otp)) return json({ success: false, code: "OTP_REQUIRED", error: "Saisissez le code WhatsApp à 6 chiffres." }, 400);
-      const { data: otpRow, error: otpReadError } = await supabase.from("otp_codes")
-        .select("id,code,expires_at,attempts")
-        .eq("telephone", phone).eq("verified", false)
-        .order("created_at", { ascending: false }).limit(1).maybeSingle();
-      if (otpReadError) throw otpReadError;
-      if (!otpRow || new Date(otpRow.expires_at).getTime() <= Date.now()) {
-        return json({ success: false, code: "OTP_EXPIRED", error: "Code de vérification expiré. Demandez un nouveau code WhatsApp." }, 400);
-      }
-      if (Number(otpRow.attempts || 0) >= 5) {
-        return json({ success: false, code: "OTP_LOCKED", error: "Trop de tentatives. Demandez un nouveau code WhatsApp." }, 429);
+      if (!/^\d{6}$/.test(otp)) return json({ success: false, code: "OTP_REQUIRED", error: "Saisissez le code de vérification reçu par SMS." });
+      const { data: otpRow } = await supabase.from("otp_codes").select("id,code,expires_at,attempts").eq("telephone", phone)
+        .eq("verified", false).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (!otpRow || new Date(otpRow.expires_at).getTime() < Date.now() || Number(otpRow.attempts || 0) >= 5) {
+        return json({ success: false, code: "OTP_EXPIRED", error: "Code de vérification expiré. Demandez un nouveau code." });
       }
       if (otpRow.code !== await codeHash(otp, "otp:" + phone)) {
         await supabase.from("otp_codes").update({ attempts: Number(otpRow.attempts || 0) + 1 }).eq("id", otpRow.id);
-        return json({ success: false, code: "OTP_INVALID", error: "Code de vérification incorrect." }, 401);
+        return json({ success: false, code: "OTP_INVALID", error: "Code de vérification incorrect." });
       }
-      const { data: consumedOtp, error: consumeError } = await supabase.from("otp_codes")
-        .update({ verified: true }).eq("id", otpRow.id).eq("verified", false).select("id").maybeSingle();
-      if (consumeError) throw consumeError;
-      if (!consumedOtp) return json({ success: false, code: "OTP_ALREADY_USED", error: "Ce code a déjà été utilisé. Demandez un nouveau code WhatsApp." }, 409);
-
-
+      await supabase.from("otp_codes").update({ verified: true }).eq("id", otpRow.id);
       const salt = randomHex(16), hash = await codeHash(code, salt);
       const { error } = await supabase.from("client_portal_access_codes").insert({
         client_id: client.id, code_hash: hash, code_salt: salt, failed_attempts: 0, locked_until: null,
         set_at: new Date().toISOString(), updated_at: new Date().toISOString(),
       });
       if (error) {
-        if (error.code === "23505") return json({ success: false, error: "Un code d'accès vient d'être enregistré pour ce compte. Utilisez-le pour vous connecter.", needs_access_code_setup: false }, 409);
+        if (error.code === "23505") return json({ success: false, error: "Un code d'accès vient d'être enregistré pour ce compte. Utilisez-le pour vous connecter.", needs_access_code_setup: false });
         throw error;
       }
       const token = await issueSession(supabase, client.id);
@@ -316,9 +160,9 @@ serve(async (req: Request) => {
     }
     if (action === "login") {
       const code = String(body?.code || "");
-      if (!/^\d{4}$/.test(code)) return json({ success: false, error: "Code d'accès invalide." }, 400);
-      if (!access) return json({ success: false, needs_access_code_setup: true }, 409);
-      if (access.locked_until && new Date(access.locked_until).getTime() > Date.now()) return json({ success: false, error: "Trop de tentatives. Veuillez réessayer plus tard.", locked_until: access.locked_until }, 429);
+      if (!/^\d{4}$/.test(code)) return json({ success: false, error: "Code d'accès invalide." });
+      if (!access) return json({ success: false, needs_access_code_setup: true });
+      if (access.locked_until && new Date(access.locked_until).getTime() > Date.now()) return json({ success: false, error: "Trop de tentatives. Veuillez réessayer plus tard.", locked_until: access.locked_until });
       const { data: fullAccess, error: fullAccessError } = await supabase.from("client_portal_access_codes").select("*").eq("client_id", client.id).single();
       if (fullAccessError) throw fullAccessError;
       const expected = await codeHash(code, fullAccess.code_salt);
@@ -326,7 +170,7 @@ serve(async (req: Request) => {
         const attempts = Number(fullAccess.failed_attempts || 0) + 1;
         const lockedUntil = attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null;
         await supabase.from("client_portal_access_codes").update({ failed_attempts: attempts >= 5 ? 0 : attempts, locked_until: lockedUntil, updated_at: new Date().toISOString() }).eq("client_id", client.id);
-        return json({ success: false, error: lockedUntil ? "Trop de tentatives. Réessayez dans 15 minutes." : "Code d'accès incorrect." }, 401);
+        return json({ success: false, error: lockedUntil ? "Trop de tentatives. Réessayez dans 15 minutes." : "Code d'accès incorrect." });
       }
       await supabase.from("client_portal_access_codes").update({ failed_attempts: 0, locked_until: null, last_verified_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("client_id", client.id);
       return json({ success: true, access_token: await issueSession(supabase, client.id) });
@@ -336,7 +180,7 @@ serve(async (req: Request) => {
       if (token) await supabase.from("client_portal_sessions").update({ revoked_at: new Date().toISOString() }).eq("token_hash", await sessionTokenHash(token));
       return json({ success: true });
     }
-    return json({ success: false, error: "Action invalide." }, 400);
+    return json({ success: false, error: "Action invalide." });
   } catch (error: any) {
     console.error("portal-access internal error:", error?.message || error);
     return json({ success: false, code: "TEMPORARY_SERVICE_ERROR", error: "Nous rencontrons une difficulté technique. Veuillez réessayer dans quelques instants. Si le problème persiste, contactez AgriCapital au 05 64 55 17 17." }, 200);
