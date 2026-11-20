@@ -9,8 +9,8 @@
   "theme_color": "#00643C",
   "orientation": "any",
   "icons": [
-    { "src": "/pwa-icon.svg?v=20261120", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/logo-agricapital.png?v=20261120", "sizes": "any", "type": "image/png", "purpose": "any" }
+    { "src": "/pwa-icon.svg?v=20261120-2", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon-portail.png?v=20261120-2", "sizes": "1264x842", "type": "image/png", "purpose": "any" }
   ],
   "categories": ["finance", "lifestyle"],
   "lang": "fr-FR",
