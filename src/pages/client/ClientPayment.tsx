@@ -66,11 +66,12 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
   const dbFinancialState = selectedPlantation === "all" ? (client?.paiement_etat || {}) : (plantation?.paiement_etat || {});
   const dbInitialDue = Math.max(0, Number(dbFinancialState?.paiement_initial?.solde || 0));
   const dbMonthlyBase = Math.max(0, Number(dbFinancialState?.mensualite?.montant || dbFinancialState?.mensualite?.montant_a_payer || 0));
+  const dbMonthlyDue = Math.max(0, Number(dbFinancialState?.mensualite?.montant_a_payer || 0));
   const dbArrears = Math.max(0, Number(dbFinancialState?.mensualite?.montant_arriere || 0));
   const dbLateDays = Math.max(0, Number(dbFinancialState?.mensualite?.jours_retard || 0));
   const hasArrears = dbArrears > 0 || dbLateDays > 0;
-  const activeHectares = Math.max(0, Number(dbFinancialState?.mensualite?.hectares_actifs || 0));
   const isDemoAccount = isLocalDemo(client);
+  const activeHectares = Math.max(0, Number(dbFinancialState?.mensualite?.hectares_actifs || 0));
   const isPreActivation = Boolean(client?.pre_activation && !client?.compte_actif);
   const hasFinancialSubscriptions = Boolean(client?.has_financial_subscriptions);
   const beneficiaryClient = Boolean(client?.is_beneficiaire_particulier || client?.type_client === "beneficiaire_particulier") && !hasFinancialSubscriptions;
@@ -96,6 +97,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
 
   const montantTotal = useMemo(() => {
     if (typePaiement === "pi") return dbInitialDue;
+    if (!isDemoAccount && dbMonthlyDue <= 0) return 0;
     if (paymentMode === "custom") return Math.max(0, Number(customAmount) || 0);
     const months = Number(paymentMode);
     const schedules = dbFinancialState?.mensualite?.echeancier_souscriptions;
@@ -107,7 +109,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
       }, 0);
     }
     return dbMonthlyBase * months;
-  }, [typePaiement, paymentMode, customAmount, dbMonthlyBase, dbInitialDue, dbFinancialState]);
+  }, [typePaiement, paymentMode, customAmount, dbMonthlyBase, dbMonthlyDue, dbInitialDue, dbFinancialState, isDemoAccount]);
 
   const contractRemaining = Math.max(0, totalContract - totalPaid);
   const paymentWillSettle = contractRemaining > 0 && montantTotal >= contractRemaining;
@@ -179,6 +181,10 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
     }
     if (isDemoAccount) {
       if (montantTotal > 0 && (plantation || selectedPlantation === "all" || isPreActivation)) return handleDemoPayment();
+      return;
+    }
+    if (typePaiement === "mensualite" && dbMonthlyDue <= 0) {
+      toast({ variant: "destructive", title: "Aucune mensualité exigible", description: "La prochaine mensualité n’est pas encore due. Vous pourrez la régler à partir de sa date d’exigibilité." });
       return;
     }
     if (typePaiement === "pi" && montantTotal <= 0 && plantation) return handleActivationGratuite();
@@ -281,6 +287,14 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
             </div>
 
             {typePaiement === "mensualite" && <>
+              {!isDemoAccount && dbMonthlyDue <= 0 ? (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 space-y-2">
+                  <p className="font-bold text-sm">Aucune mensualité n’est actuellement exigible.</p>
+                  <p className="text-sm text-muted-foreground">Votre mensualité prévue est de {fmt(dbMonthlyBase)}. Le paiement sera disponible à partir de la date prévue au contrat.</p>
+                </div>
+              ) : (
+                <>
+
               {hasArrears && (
                 <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-3">
                   <div>
@@ -311,6 +325,9 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
                 <div className="flex justify-between text-sm"><span>Montant à payer maintenant</span><strong className="text-primary">{fmt(montantTotal)}</strong></div>
                 <p className="text-sm text-muted-foreground"></p>
               </div>
+            
+                </>
+              )}
             </>}
 
             {typePaiement === "pi" && (plantation || isPreActivation) && <div className="rounded-lg bg-muted/30 p-4 space-y-2 text-sm">{plantation && <><div className="flex justify-between"><span>Plantation</span><strong>{plantation.nom_plantation || plantation.id_unique}</strong></div><div className="flex justify-between"><span>Surface</span><strong>{plantation.superficie_ha} ha</strong></div></>}<div className="flex justify-between"><span>Solde du paiement initial</span><strong className="text-primary">{fmt(dbInitialDue)}</strong></div></div>}
@@ -326,7 +343,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
               <div className="grid grid-cols-2 gap-2 text-sm"><div className="rounded-lg bg-muted/40 p-3"><p className="text-muted-foreground">Débit client</p><p className="font-black text-primary">{fmt(kkiapayPricing.clientDebitAmount)}</p></div><div className="rounded-lg bg-muted/40 p-3"><p className="text-muted-foreground">Frais absorbés</p><p className="font-black">{fmt(kkiapayPricing.absorbedByAgriCapital)}</p></div></div>
             </div>}
 
-            <Button onClick={handleSubmit} disabled={loading || (!plantation && selectedPlantation !== "all" && !isPreActivation) || (montantTotal <= 0 && !isPiFree)} className="w-full h-14 rounded-lg font-bold">{loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CreditCard className="h-5 w-5 mr-2" />}{isPreActivation ? "Payer le paiement initial" : isPiFree ? "Activer ma plantation (0 F)" : (isDemoAccount ? "Payer maintenant (simulation)" : "Payer maintenant")}</Button>
+            <Button onClick={handleSubmit} disabled={loading || (!plantation && selectedPlantation !== "all" && !isPreActivation) || (!isDemoAccount && typePaiement === "mensualite" && dbMonthlyDue <= 0) || (montantTotal <= 0 && !isPiFree)} className="w-full h-14 rounded-lg font-bold">{loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CreditCard className="h-5 w-5 mr-2" />}{isPreActivation ? "Payer le paiement initial" : isPiFree ? "Activer ma plantation (0 F)" : (isDemoAccount ? "Payer maintenant (simulation)" : "Payer maintenant")}</Button>
             <p className="text-sm text-center text-muted-foreground">{isPreActivation ? "Après confirmation du paiement initial, votre compte client sera activé automatiquement selon les conditions de votre contrat." : "Votre choix indique uniquement le montant que vous souhaitez régler maintenant. Aucun paiement futur ni échéancier n'est créé."}</p>
           </CardContent>
         </Card>
