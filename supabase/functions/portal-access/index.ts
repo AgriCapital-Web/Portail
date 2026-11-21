@@ -74,14 +74,14 @@ function smsDestination(client: any) {
   if (dial === "225") return "+225" + local;
   return "+" + dial + local.replace(/^0+/, "");
 }
-async function sendOtpSms(supabase: any, to: string, code: string) {
+async function sendOtpSms(supabase: any, to: string, code: string, otpId: string) {
   const { data: apiKey, error } = await supabase.rpc("senndo_get_secret", { p_name: "senndo_api_key" });
   if (error || typeof apiKey !== "string" || !apiKey) throw new Error("Configuration Senndo SMS indisponible.");
   const senndo = new SenndoClient({ apiKey, baseUrl: "https://api.senndo.com", timeoutMs: 30000, maxRetries: 2, userAgent: "AgriCapital-Portal/1.0" });
   const result = await senndo.sendMessage({
     channel: "sms", to, text: "AgriCapital : votre code de verification portail est " + code + ". Valable 10 minutes. Ne le partagez pas.",
     ...(to.startsWith("+225") ? { senderId: "AgriCapital" } : {}),
-    idempotencyKey: "portal-otp-" + crypto.randomUUID(),
+    idempotencyKey: "portal-otp-" + otpId,
   });
   console.info("[Portal OTP] SMS accepté par Senndo", { messageId: result?.id || null, destination: maskPhone(to) });
   return result;
@@ -240,7 +240,7 @@ serve(async (req: Request) => {
       if (deliveryInsertError) console.error("[Portal OTP] Suivi CRM indisponible", deliveryInsertError.message);
       try {
         const providerResult = channel === "sms"
-          ? await sendOtpSms(supabase, dest, otp)
+          ? await sendOtpSms(supabase, dest, otp, otpRow.id)
           : await sendOtpWhatsApp(supabase, dest, otp, otpRow.id);
         if (delivery?.id) {
           const { error: deliveryUpdateError } = await supabase.from("notification_deliveries").update({
@@ -285,7 +285,7 @@ serve(async (req: Request) => {
       }
       if (otpRow.code !== await codeHash(otp, "otp:" + phone)) {
         await supabase.from("otp_codes").update({ attempts: Number(otpRow.attempts || 0) + 1 }).eq("id", otpRow.id);
-        return json({ success: false, code: "OTP_INVALID", error: "Code SMS incorrect." });
+        return json({ success: false, code: "OTP_INVALID", error: "Code de vérification incorrect." });
       }
       const { error: verifyError } = await supabase.from("otp_codes").update({ verified: true }).eq("id", otpRow.id);
       if (verifyError) throw verifyError;
