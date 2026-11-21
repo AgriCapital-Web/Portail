@@ -51,3 +51,4 @@ Les secrets serveur, notamment les clés Web Push VAPID, ne doivent jamais être
 Toute attribution de contenu, documentation ou métadonnée interne du projet doit utiliser :
 
 **Inocent KOFFI _ AgriCapital**
+
