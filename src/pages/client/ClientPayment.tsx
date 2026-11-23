@@ -216,7 +216,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
       if (error || !data?.success) throw new Error(data?.error || await getFunctionErrorMessage(error, "Création du paiement impossible."));
       const opened = await openPayment({
         amount: Number(data.kkiapay_widget_amount ?? kkiapayPricing.widgetAmount),
-        email: client.email || undefined,
+        email: String(client.email || "").trim() || `paiement-${String(client.id || client.id_unique || "client").replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}@agricapital.ci`,
         phone: client.telephone,
         name: client.nom_complet || ((client.prenoms || "") + " " + (client.nom || "")).trim(),
         paymentMethods: [paymentMethod],
