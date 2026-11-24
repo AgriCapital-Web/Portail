@@ -14,15 +14,12 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
-    },
-    {
-      "src": "/logo-agricapital.png?v=20261124-1",
-      "sizes": "1264x842",
-      "type": "image/png",
-      "purpose": "any"
     }
   ],
-  "categories": ["finance", "lifestyle"],
+  "categories": [
+    "finance",
+    "lifestyle"
+  ],
   "lang": "fr-FR",
   "dir": "ltr",
   "id": "ac-clients",
