@@ -1,4 +1,4 @@
-const CACHE_NAME = "agricapital-client-shell-v14";
+const CACHE_NAME = "agricapital-client-shell-v15";
 const APP_ORIGIN = self.location.origin;
 const BRAND_ICON = "/brand-icon.svg?v=20261124-1";
 const BRAND_LOGO = "/logo-agricapital.png?v=20261124-1";
