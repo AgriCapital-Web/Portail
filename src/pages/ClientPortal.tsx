@@ -8,8 +8,6 @@ const ClientPayment = lazy(() => import("./client/ClientPayment"));
 const PaymentReturn = lazy(() => import("./client/PaymentReturn"));
 const ClientPlantationHub = lazy(() => import("./client/ClientPlantationHub"));
 const StakeholderDashboard = lazy(() => import("./client/StakeholderDashboard"));
-import InstallPrompt from "@/components/pwa/InstallPrompt";
-import PwaUpdatePrompt from "@/components/pwa/PwaUpdatePrompt";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -314,8 +312,6 @@ const ClientPortal = () => {
   return (
     <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-primary">Chargement de votre espace…</div>}>
       <>
-        <PwaUpdatePrompt />
-        <InstallPrompt />
         {renderView()}
       </>
     </Suspense>
