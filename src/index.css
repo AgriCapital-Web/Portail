@@ -625,3 +625,16 @@ h1, h2, h3, .font-display {
     padding-block: 1rem !important;
   }
 }
+
+
+/* Bouton d'installation PWA compact, visible et accessible. */
+@keyframes pwa-install-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, .38); }
+  50% { transform: scale(1.035); box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+}
+.pwa-install-pulse {
+  animation: pwa-install-pulse 1.35s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pwa-install-pulse { animation: none; }
+}
