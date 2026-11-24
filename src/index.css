@@ -638,3 +638,14 @@ h1, h2, h3, .font-display {
 @media (prefers-reduced-motion: reduce) {
   .pwa-install-pulse { animation: none; }
 }
+
+
+/* Le dialogue d'installation reste circulaire malgré les règles globales Radix. */
+.pwa-install-dialog {
+  width: min(318px, calc(100vw - 2rem)) !important;
+  height: min(318px, calc(100vw - 2rem)) !important;
+  max-width: min(318px, calc(100vw - 2rem)) !important;
+  max-height: min(318px, calc(100vw - 2rem)) !important;
+  border-radius: 9999px !important;
+}
+.pwa-install-dialog > button[aria-label="Close"] { display: none; }
