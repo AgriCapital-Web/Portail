@@ -107,7 +107,7 @@ export default function InstallPrompt() {
 
   return (
     <Dialog open={show} onOpenChange={(open) => !open && dismiss()}>
-      <DialogContent className="flex h-[min(318px,calc(100vw-2rem))] w-[min(318px,calc(100vw-2rem))] max-w-none flex-col items-center justify-center overflow-hidden rounded-full border border-primary/15 bg-white p-6 text-center shadow-2xl">
+      <DialogContent className="pwa-install-dialog flex flex-col items-center justify-center overflow-hidden border border-primary/15 bg-white p-6 text-center shadow-2xl">
         <div className="mb-2 flex h-20 w-32 items-center justify-center">
           <img
             src="/logo-agricapital.png?v=20261124-1"
