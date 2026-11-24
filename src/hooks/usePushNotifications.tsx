@@ -112,8 +112,8 @@ export const usePushNotifications = () => {
       const registration = await navigator.serviceWorker.ready;
       await registration.showNotification(payload.title, {
         body: payload.body,
-        icon: payload.icon || '/images/logo-light.png',
-        badge: payload.badge || '/icons/icon-192x192.png',
+        icon: payload.icon || '/logo-agricapital.png?v=20261124-1',
+        badge: payload.badge || '/brand-icon.svg?v=20261124-1',
         tag: payload.tag,
         data: payload.data,
         vibrate: [200, 100, 200],
@@ -123,7 +123,7 @@ export const usePushNotifications = () => {
       try {
         new Notification(payload.title, {
           body: payload.body,
-          icon: payload.icon || '/images/logo-light.png',
+          icon: payload.icon || '/logo-agricapital.png?v=20261124-1',
           tag: payload.tag
         });
       } catch {
