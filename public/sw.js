@@ -1,11 +1,19 @@
-const CACHE_NAME = "agricapital-client-shell-v13";
+const CACHE_NAME = "agricapital-client-shell-v15";
 const APP_ORIGIN = self.location.origin;
+const BRAND_ICON = "/brand-icon.svg?v=20261124-1";
+const BRAND_LOGO = "/logo-agricapital.png?v=20261124-1";
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(["/", "/index.html", "/manifest-client.json", "/favicon.svg?v=20261120-2", "/pwa-icon.svg?v=20261120-2", "/logo-agricapital.png?v=20261120-2", "/icons/icon-portail.png?v=20261120-2"]);
-    await self.skipWaiting();
+    await cache.addAll([
+      "/",
+      "/index.html",
+      "/manifest-client.json?v=20261124-1",
+      BRAND_ICON,
+      BRAND_LOGO,
+    ]);
+    // Do not activate silently: an existing installation must confirm the update.
   })());
 });
 
@@ -13,7 +21,9 @@ self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
     const cacheNames = await caches.keys();
     await Promise.allSettled(
-      cacheNames.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      cacheNames
+        .filter((key) => key.startsWith("agricapital-client-shell-") && key !== CACHE_NAME)
+        .map((key) => caches.delete(key))
     );
     await self.clients.claim();
     const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
@@ -50,8 +60,8 @@ self.addEventListener("push", (event) => {
     }
     await self.registration.showNotification(title, {
       body,
-      icon: payload.icon || "/icons/icon-portail.png",
-      badge: payload.badge || "/icons/icon-portail.png",
+      icon: payload.icon || BRAND_ICON,
+      badge: payload.badge || BRAND_ICON,
       tag,
       renotify: false,
       data,
@@ -84,7 +94,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(event.request, { cache: "no-store" }).catch(() => caches.match("/index.html")));
     return;
   }
-  if (url.pathname === "/favicon.svg" || url.pathname === "/pwa-icon.svg" || url.pathname === "/icons/icon-portail.png" || url.pathname === "/logo-agricapital.png") {
+  if (url.pathname === "/brand-icon.svg" || url.pathname === "/logo-agricapital.png") {
     event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
     return;
   }
@@ -97,6 +107,6 @@ self.addEventListener("fetch", (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request)));;
+      .catch(() => caches.match(event.request)));
   }
 });
