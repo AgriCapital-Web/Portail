@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import ClientPortal from "./pages/ClientPortal";
 import NotFound from "./pages/NotFound";
+import PwaUpdatePrompt from "@/components/pwa/PwaUpdatePrompt";
+import InstallPrompt from "@/components/pwa/InstallPrompt";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +54,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <PwaUpdatePrompt />
+      <InstallPrompt />
       <BrowserRouter>
         <PortalNavigationGuard />
         <Routes>
