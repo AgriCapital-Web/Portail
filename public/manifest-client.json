@@ -1,16 +1,26 @@
 {
-  "name": "AC_Clients",
-  "short_name": "AC_Clients",
-  "description": "Espace Client AgriCapital — suivi complet de vos plantations de palmier à huile (progression, médias, documents, carte, rapports, messagerie) et paiement sécurisé.",
+  "name": "AgriCapital — Espace Client",
+  "short_name": "AgriCapital",
+  "description": "Espace Client AgriCapital — suivi complet de vos plantations de palmier à huile, documents, rapports, messagerie et paiements.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#00643C",
+  "background_color": "#ffffff",
   "theme_color": "#00643C",
   "orientation": "any",
   "icons": [
-    { "src": "/pwa-icon.svg?v=20261120-2", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/icons/icon-portail.png?v=20261120-2", "sizes": "1264x842", "type": "image/png", "purpose": "any" }
+    {
+      "src": "/brand-icon.svg?v=20261124-1",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-agricapital.png?v=20261124-1",
+      "sizes": "1264x842",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ],
   "categories": ["finance", "lifestyle"],
   "lang": "fr-FR",
