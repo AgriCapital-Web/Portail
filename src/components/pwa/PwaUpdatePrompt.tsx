@@ -33,14 +33,17 @@ export default function PwaUpdatePrompt() {
           setWaitingWorker(registration.waiting);
         }
 
-        registration.addEventListener("updatefound", () => {
+        const watchInstallingWorker = () => {
           const installing = registration?.installing;
           installing?.addEventListener("statechange", () => {
             if (installing.state === "installed" && navigator.serviceWorker.controller && !disposed) {
               setWaitingWorker(registration?.waiting || installing);
             }
           });
-        });
+        };
+        registration.addEventListener("updatefound", watchInstallingWorker);
+        // Also attach if an update began before register() resolved.
+        watchInstallingWorker();
 
         checkForUpdate();
         intervalId = window.setInterval(checkForUpdate, 60 * 60 * 1000);
