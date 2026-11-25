@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Building2, MapPinned, Sprout, ArrowRight, LogOut, UserRound, FileText } from "lucide-react";
+import { Building2, MapPinned, Sprout, ArrowRight, LogOut, UserRound, FileText, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,7 @@ export default function StakeholderDashboard({client,plantations,onPlantationHub
         <div className="rounded-lg bg-white p-1"><img src={logoWhiteBg} alt="AgriCapital" className="h-8 object-contain"/></div>
         <div className="min-w-0 flex-1 px-2"><p className="truncate text-sm font-bold">{client?.nom_complet||"Espace portail"}</p><p className="truncate text-[10px] text-white/70">{roleLabel}</p></div>
         <PortalNotificationCenter compact />
+        <Button variant="ghost" size="icon" disabled title="APK AgriCapital Client pas encore disponible" aria-label="Télécharger AgriCapital Client" className="h-9 w-9 text-[#F59E0B] opacity-100"><Download className="h-5 w-5 stroke-[2.8]" /></Button>
         <Button variant="ghost" size="icon" onClick={onLogout} className="text-white hover:bg-white/15" title="Déconnexion"><LogOut className="h-4 w-4"/></Button>
       </div>
     </header>

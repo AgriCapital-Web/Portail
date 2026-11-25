@@ -11,7 +11,7 @@ import { formatCFA } from "@/utils/pricing";
 import { 
   MapPin, Phone, Sprout, CreditCard, Wallet,
   ArrowRight, LogOut, CheckCircle, AlertTriangle, Clock,
-  RefreshCw, TrendingUp, Leaf, ChevronRight, Zap, Target, Calendar, MessageCircle
+  RefreshCw, TrendingUp, Leaf, ChevronRight, Zap, Target, Calendar, MessageCircle, Download
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -182,6 +182,7 @@ const ClientDashboard = ({
               email={client?.email}
               account={client?.id_unique || client?.telephone}
             />
+            <Button variant="ghost" size="icon" disabled title="APK AgriCapital Client pas encore disponible" aria-label="Télécharger AgriCapital Client" className="h-9 w-9 text-[#F59E0B] opacity-100"><Download className="h-5 w-5 stroke-[2.8]" /></Button>
             <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={refreshing} className="text-white hover:bg-white/15 h-9 w-9">
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </Button>
