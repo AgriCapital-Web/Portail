@@ -94,7 +94,7 @@ export default function PwaUpdatePrompt() {
           Une nouvelle version est disponible
         </h2>
         <p id="pwa-update-description" className="mt-2 text-sm leading-relaxed text-slate-600">
-          Cette mise à jour actualise l’application, son logo et ses icônes. Appuyez pour l’installer et redémarrer votre espace client.
+          Cette mise à jour actualise l’application et ses fichiers. Appuyez pour l’installer. Si Android conserve l’ancienne icône, supprimez l’ancien raccourci puis ajoutez à nouveau AgriCapital Client depuis le navigateur.
         </p>
         <button
           type="button"
