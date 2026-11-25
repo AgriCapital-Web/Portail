@@ -9,7 +9,6 @@ import { Helmet } from "react-helmet-async";
 import PortalAccessSupportDialog from "@/components/client/PortalAccessSupportDialog";
 import { createDemoAccount } from "@/data/demoAccount";
 const PhoneNumberField = lazy(() => import("@/components/client/PhoneNumberField"));
-import { usePortalReferences } from "@/hooks/usePortalReferences";
 
 interface ClientHomeProps {
   onLogin: (client: any, plantations: any[], paiements: any[]) => void;
@@ -43,7 +42,6 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
   const [otpChannel, setOtpChannel] = useState<"sms" | "whatsapp">("sms");
   const [clientName, setClientName] = useState("");
   const [supportOpen, setSupportOpen] = useState(false);
-  const { data: countries = [], isLoading: countriesLoading, isError: countriesError } = usePortalReferences("pays_telephone");
 
   useEffect(() => { document.title = "Portail Client | AgriCapital"; }, []);
 
@@ -280,18 +278,16 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                   <div className="space-y-2.5 sm:space-y-3">
                     <div>
                       <label className="mb-1 block text-[clamp(0.875rem,1.3vw,1rem)] font-semibold text-primary">Numéro de téléphone</label>
-                      <Suspense fallback={<Input value={telephone || ""} onChange={(e) => setTelephone(e.target.value)} placeholder="+225 07 00 00 00 00" disabled={countriesLoading || countriesError} aria-label="Numéro de téléphone" className="phone-input" />}>
+                      <Suspense fallback={<Input value={telephone || ""} onChange={(e) => setTelephone(e.target.value)} placeholder="+225 07 00 00 00 00" disabled={loading} aria-label="Numéro de téléphone" className="phone-input" />}>
                         <PhoneNumberField
-                          countries={countries.map((row) => row.code)}
-                          disabled={countriesLoading || countriesError}
+                          disabled={loading}
                           value={telephone}
                           onChange={setTelephone}
                           onKeyDown={(e) => { if (e.key === "Enter") void handlePhoneContinue(); }}
                         />
                       </Suspense>
-                      {countriesError && <p role="alert" className="mt-2 text-sm text-destructive">La liste des pays est indisponible. Réessayez dans quelques instants.</p>}
                     </div>
-                    <Button onClick={() => void handlePhoneContinue()} disabled={loading || countriesLoading || countriesError} className="min-h-10 h-auto py-2.5 w-full rounded-xl whitespace-normal text-[clamp(0.875rem,1.3vw,1rem)] leading-snug bg-primary text-primary-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground active:bg-primary active:text-primary-foreground">
+                    <Button onClick={() => void handlePhoneContinue()} disabled={loading} className="min-h-10 h-auto py-2.5 w-full rounded-xl whitespace-normal text-[clamp(0.875rem,1.3vw,1rem)] leading-snug bg-primary text-primary-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground active:bg-primary active:text-primary-foreground">
                       {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Chargement…</> : <>Vérifier le numéro <ArrowRight className="ml-2 h-5 w-5" /></>}
                     </Button>
                     <Button type="button" variant="outline" onClick={handleDemoEnter} className="min-h-10 h-auto py-2.5 w-full rounded-xl border-2 border-[#E89C31] bg-white text-[#00643C] font-semibold shadow-sm whitespace-normal text-[clamp(0.875rem,1.3vw,1rem)] leading-snug transition-colors duration-150 hover:bg-white hover:text-[#00643C] hover:border-[#E89C31] hover:shadow-sm focus-visible:bg-white focus-visible:text-[#00643C] focus-visible:border-[#E89C31] focus-visible:ring-2 focus-visible:ring-[#E89C31] focus-visible:ring-offset-2 active:bg-white active:text-[#00643C] active:border-[#E89C31]">
