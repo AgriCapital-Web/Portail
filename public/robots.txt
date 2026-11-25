@@ -1,10 +1,6 @@
 # AgriCapital — portail client public
-# La page d'accueil et les contenus publics peuvent être explorés.
-# Les espaces authentifiés et les routes de compte restent protégés par l'authentification.
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /admin/
 Disallow: /api/
 
 Sitemap: https://client.agricapital.ci/sitemap.xml

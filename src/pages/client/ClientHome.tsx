@@ -361,6 +361,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
               <p className="mt-1 flex shrink-0 items-center justify-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5" /> Accès sécurisé à votre espace personnel
               </p>
+              <div className="mt-2 flex flex-wrap justify-center gap-3 text-[10px] sm:text-xs text-muted-foreground"><a className="underline underline-offset-2" href="/confidentialite.html">Confidentialité</a><a className="underline underline-offset-2" href="/conditions-utilisation.html">Conditions d’utilisation</a></div>
             </div>
           </section>
         </div>
