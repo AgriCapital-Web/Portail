@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { getCountries, getCountryCallingCode, parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js/max";
+import { countrySearchMatches, getLocalizedCountryNames } from "@/lib/countrySearch";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +41,7 @@ export default function PhoneNumberField({
         code,
         name: displayNames.of(code) || code,
         callingCode: "+" + getCountryCallingCode(code),
-        searchTerms: code === "CI" ? CI_SEARCH_TERMS : "",
+        searchTerms: `${getLocalizedCountryNames(code)} ${code} +${getCountryCallingCode(code)} ${code === "CI" ? CI_SEARCH_TERMS + " Ivory Coast Ivory-Coast" : ""}`,
       }))
       .sort((a, b) => a.name.localeCompare(b.name, "fr"));
   }, [countries]);
@@ -87,8 +88,9 @@ export default function PhoneNumberField({
       onChange(internationalPaste.number);
       return;
     }
-    const parsed = parsePhoneNumberFromString(trimmed, country);
+    // Keep the exact national input visible while the user types. Normalize only the value sent to the form.
     const digits = trimmed.replace(/\D/g, "");
+    const parsed = parsePhoneNumberFromString(trimmed, country);
     const normalized = parsed?.number || (digits ? "+" + getCountryCallingCode(country) + digits : undefined);
     lastEmittedValue.current = normalized;
     onChange(normalized);
@@ -125,7 +127,7 @@ export default function PhoneNumberField({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[min(340px,calc(100vw-24px))] p-0" align="start">
-          <Command>
+          <Command filter={(value, search) => countrySearchMatches(value, search)}>
             <CommandInput placeholder="Rechercher un pays, un nom ou un indicatif..." />
             <CommandList>
               <CommandEmpty>Aucun pays trouvé.</CommandEmpty>
