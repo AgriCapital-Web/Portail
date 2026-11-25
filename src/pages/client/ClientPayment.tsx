@@ -350,7 +350,7 @@ const ClientPayment = ({ client, plantations, paiements = [], onBack, initialPla
 
         {client?.portal_config?.contact_telephone && <Card className="rounded-lg"><CardContent className="p-3 text-center"><a href={`tel:${client.portal_config.contact_telephone}`} className="inline-flex items-center gap-2 text-primary font-bold text-sm"><Phone className="h-4 w-4" />{client.portal_config.contact_telephone}</a></CardContent></Card>}
       </main>
-      <footer className="border-t bg-card py-3"><p className="text-sm text-muted-foreground text-center">© {new Date().getFullYear()} AgriCapital</p></footer>
+      <footer className="border-t bg-card py-3"><p className="text-sm text-muted-foreground text-center">© {new Date().getFullYear()} AgriCapital</p><div className="mt-1 flex justify-center gap-4 text-xs text-muted-foreground"><a href="/confidentialite.html" className="underline">Confidentialité</a><a href="/conditions-utilisation.html" className="underline">Conditions d’utilisation</a></div></footer>
     </div>
   );
 };
