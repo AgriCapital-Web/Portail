@@ -27,7 +27,7 @@ const CI_SEARCH_TERMS = [
 ].join(" ");
 
 export default function PhoneNumberField({
-  countries = [],
+  countries,
   disabled,
   value,
   onChange,
