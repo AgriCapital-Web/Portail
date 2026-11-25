@@ -6,6 +6,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { countrySearchMatches, getLocalizedCountryNames } from "@/lib/countrySearch";
 
 type Country = { code:string; name:string; callingCode:string; flag:string; minLocalDigits?:number; maxLocalDigits?:number; isDefault?:boolean };
 type Props = { label?:string; countryCode?:string; localValue?:string; required?:boolean; disabled?:boolean; onChange:(v:{countryCode:string;callingCode:string;localValue:string;internationalValue:string})=>void };
@@ -23,11 +24,10 @@ export default function CountryPhoneInput({label,countryCode,localValue="",requi
   useEffect(()=>{let active=true;void(async()=>{const {data,error}=await(supabase as any).from("referentiels_systeme").select("code,libelle,ordre,metadata").eq("categorie","pays_telephone").eq("actif",true).order("ordre").order("libelle");if(active&&!error)setCountries((data||[]).map((r:any)=>({code:r.code,name:r.libelle,callingCode:r.metadata?.callingCode||"",flag:r.metadata?.flag||countryFlag(r.code),minLocalDigits:r.metadata?.minLocalDigits,maxLocalDigits:r.metadata?.maxLocalDigits,isDefault:!!r.metadata?.is_default})).filter((c:Country)=>c.callingCode));})();return()=>{active=false;};},[]);
   useEffect(()=>{if(!countries.length)return;if(lastEmittedCallingCode.current&&countryCode===lastEmittedCallingCode.current){lastEmittedCallingCode.current=null;return;}const exact=countries.find(c=>c.code===countryCode);const matches=countries.filter(c=>c.callingCode===countryCode);setSelectedCode((exact|| (matches.length===1?matches[0]:undefined)||countries.find(c=>c.isDefault)||countries[0])?.code||"");},[countryCode,countries]);
   const selected=countries.find(c=>c.code===selectedCode)||countries.find(c=>c.isDefault)||countries[0];
-  const ciAliases = "Côte d'Ivoire Cote d'Ivoire Cote d Ivoire Côte d Ivoire cote ivoire Côte ivoire cote divoire cote divoir cote d ivoir cot d ivoir cot d'ivoire cot ivoire ivoire ivorie ivor Ivory Coast Ivory Ivory-Coast 225 +225 CI";
   const options=useMemo(()=>countries.map(c=>({
     value:c.code,
     label:c.flag+" "+c.name+" "+c.callingCode,
-    searchTerms:c.code==="CI"?ciAliases:c.callingCode
+    searchTerms:`${getLocalizedCountryNames(c.code)} ${c.code} ${c.callingCode} ${c.code==="CI"?"Ivory Coast Ivory-Coast Ivoire Ivorie":""}`
   })),[countries]);
   const emit=(country:Country,value:string)=>{
     setSelectedCode(country.code);
@@ -42,7 +42,7 @@ export default function CountryPhoneInput({label,countryCode,localValue="",requi
     <div className="flex w-full min-w-0 gap-2">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild><Button type="button" variant="outline" disabled={disabled||!selected} className="w-[112px] shrink-0 justify-between px-3 font-normal"><span className="truncate">{selected?selected.flag+" "+selected.callingCode:"Pays"}</span><ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 opacity-50"/></Button></PopoverTrigger>
-        <PopoverContent align="start" className="w-max min-w-[260px] max-w-[calc(100vw-24px)] p-0"><Command className="w-full min-w-0"><CommandInput placeholder="Rechercher un pays..."/><CommandList><CommandEmpty>Aucun pays trouvé.</CommandEmpty><CommandGroup>{options.map(o=><CommandItem key={o.value} value={o.label+" "+(o.searchTerms||"")} onSelect={()=>{const c=countries.find(x=>x.code===o.value);if(c)emit(c,localValue);setOpen(false);}}><Check className={cn("mr-2 h-4 w-4",selected?.code===o.value?"opacity-100":"opacity-0")}/><span className="truncate">{o.label}</span></CommandItem>)}</CommandGroup></CommandList></Command></PopoverContent>
+        <PopoverContent align="start" className="w-max min-w-[260px] max-w-[calc(100vw-24px)] p-0"><Command className="w-full min-w-0" filter={(value,search)=>countrySearchMatches(value,search)}><CommandInput placeholder="Rechercher un pays..."/><CommandList><CommandEmpty>Aucun pays trouvé.</CommandEmpty><CommandGroup>{options.map(o=><CommandItem key={o.value} value={o.label+" "+(o.searchTerms||"")} onSelect={()=>{const c=countries.find(x=>x.code===o.value);if(c)emit(c,localValue);setOpen(false);}}><Check className={cn("mr-2 h-4 w-4",selected?.code===o.value?"opacity-100":"opacity-0")}/><span className="truncate">{o.label}</span></CommandItem>)}</CommandGroup></CommandList></Command></PopoverContent>
       </Popover>
       <Input className="min-w-0 flex-1" type="tel" inputMode="numeric" autoComplete="tel" value={localValue} disabled={disabled||!selected} required={required} minLength={selected?.minLocalDigits} maxLength={selected?.maxLocalDigits} placeholder="Numéro local" onChange={e=>selected&&emit(selected,e.target.value)}/>
     </div>
