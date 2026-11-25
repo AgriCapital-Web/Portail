@@ -24,7 +24,14 @@ export default function CountryPhoneInput({label,countryCode,localValue="",requi
   useEffect(()=>{if(!countries.length)return;if(lastEmittedCallingCode.current&&countryCode===lastEmittedCallingCode.current){lastEmittedCallingCode.current=null;return;}const exact=countries.find(c=>c.code===countryCode);const matches=countries.filter(c=>c.callingCode===countryCode);setSelectedCode((exact|| (matches.length===1?matches[0]:undefined)||countries.find(c=>c.isDefault)||countries[0])?.code||"");},[countryCode,countries]);
   const selected=countries.find(c=>c.code===selectedCode)||countries.find(c=>c.isDefault)||countries[0];
   const options=useMemo(()=>countries.map(c=>({value:c.code,label:c.flag+" "+c.name+" "+c.callingCode})),[countries]);
-  const emit=(country:Country,value:string)=>{setSelectedCode(country.code);lastEmittedCallingCode.current=country.callingCode;const local=digits(value).slice(0,country.maxLocalDigits||undefined);onChange({countryCode:country.code,callingCode:country.callingCode,localValue:local,internationalValue:local?country.callingCode+local:""});};
+  const emit=(country:Country,value:string)=>{
+    setSelectedCode(country.code);
+    lastEmittedCallingCode.current=country.callingCode;
+    // Keep the national digits verbatim: never parse/format them while typing,
+    // because phone parsers may interpret a leading zero as a trunk prefix.
+    const local=digits(value).slice(0,country.maxLocalDigits||undefined);
+    onChange({countryCode:country.code,callingCode:country.callingCode,localValue:local,internationalValue:local?country.callingCode+local:""});
+  };
   return <div className="space-y-2 min-w-0">
     {label&&<label className="text-sm font-medium">{label}{required&&" *"}</label>}
     <div className="flex w-full min-w-0 gap-2">
