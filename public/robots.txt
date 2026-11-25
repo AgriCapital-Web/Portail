@@ -1,15 +1,6 @@
 # AgriCapital — portail client public
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /admin/
 Disallow: /api/
-Disallow: /dashboard
-Disallow: /dashboard/
-Disallow: /plantations
-Disallow: /plantations/
-Disallow: /paiements
-Disallow: /paiements/
-Disallow: /paiement/retour
 
 Sitemap: https://client.agricapital.ci/sitemap.xml
