@@ -42,6 +42,7 @@ const countryFromCode = (value: string) => {
 export default function CountryPhoneInput({ label, countryCode, localValue = "", required, disabled, onChange }: Props) {
   const [selectedCode, setSelectedCode] = useState(() => countryFromCode(countryCode || "+225").code);
   const lastEmittedCallingCode = useRef<string | null>(null);
+  const [internationalDraft, setInternationalDraft] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function CountryPhoneInput({ label, countryCode, localValue = "",
       lastEmittedCallingCode.current = null;
       return;
     }
+    setInternationalDraft(null);
     setSelectedCode(countryFromCode(countryCode || "+225").code);
   }, [countryCode]);
 
@@ -89,6 +91,35 @@ export default function CountryPhoneInput({ label, countryCode, localValue = "",
       internationalValue: local ? country.callingCode + local : "",
     });
   };
+  const handlePhoneInput = (rawValue: string) => {
+    const raw = rawValue.trim();
+    if (raw.startsWith("+")) {
+      const rawDigits = digits(raw);
+      const match = COUNTRIES
+        .filter(country => rawDigits.startsWith(digits(country.callingCode)))
+        .sort((a, b) => digits(b.callingCode).length - digits(a.callingCode).length)[0];
+      setInternationalDraft(raw);
+      if (!match) {
+        onChange({ countryCode: selected.code, callingCode: selected.callingCode, localValue: "", internationalValue: "" });
+        return;
+      }
+      const parsed = parsePhoneNumberFromString(raw);
+      const country = (parsed?.country && COUNTRIES.find(item => item.code === parsed.country))
+        || (match.callingCode === "+1" ? countryFromCode("+1") : match);
+      const local = rawDigits.slice(digits(country.callingCode).length).slice(0, country.maxLocalDigits || 15);
+      setSelectedCode(country.code);
+      lastEmittedCallingCode.current = country.callingCode;
+      onChange({
+        countryCode: country.code,
+        callingCode: country.callingCode,
+        localValue: local,
+        internationalValue: local ? country.callingCode + local : "",
+      });
+      return;
+    }
+    setInternationalDraft(null);
+    emit(selected, rawValue);
+  };
 
   return (
     <div className="space-y-2 min-w-0">
@@ -113,7 +144,7 @@ export default function CountryPhoneInput({ label, countryCode, localValue = "",
                       value={option.label + " " + option.searchTerms}
                       onSelect={() => {
                         const country = COUNTRIES.find((item) => item.code === option.value);
-                        if (country) emit(country, currentLocal);
+                        if (country) { setInternationalDraft(null); emit(country, currentLocal); }
                         setOpen(false);
                       }}
                     >
@@ -131,13 +162,13 @@ export default function CountryPhoneInput({ label, countryCode, localValue = "",
           type="tel"
           inputMode="numeric"
           autoComplete="tel"
-          value={currentLocal}
+          value={internationalDraft ?? currentLocal}
           disabled={disabled}
           required={required}
           minLength={selected.minLocalDigits}
           maxLength={selected.maxLocalDigits}
           placeholder="Numéro local"
-          onChange={(event) => emit(selected, event.target.value)}
+          onChange={(event) => handlePhoneInput(event.target.value)}
         />
       </div>
     </div>
