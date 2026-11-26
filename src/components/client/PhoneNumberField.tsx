@@ -122,6 +122,7 @@ export default function PhoneNumberField({
     const nationalValue = localNumber.startsWith("+")
       ? localNumber.replace(/\D/g, "").slice(previousCallingCode.replace(/\D/g, "").length)
       : localNumber;
+    setLocalNumber(nationalValue);
     emit(code, nationalValue);
   };
 
