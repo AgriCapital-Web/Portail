@@ -80,12 +80,27 @@ export default function PhoneNumberField({
       onChange(undefined);
       return;
     }
-    const internationalPaste = trimmed.startsWith("+") ? parsePhoneNumberFromString(trimmed) : undefined;
-    if (internationalPaste?.country) {
-      setSelectedCountry(internationalPaste.country);
-      setLocalNumber(internationalPaste.formatNational());
-      lastEmittedValue.current = internationalPaste.number;
-      onChange(internationalPaste.number);
+    if (trimmed.startsWith("+")) {
+      const rawDigits = trimmed.replace(/\D/g, "");
+      const match = countryOptions
+        .filter(country => rawDigits.startsWith(country.callingCode.replace(/\D/g, "")))
+        .sort((a, b) => b.callingCode.replace(/\D/g, "").length - a.callingCode.replace(/\D/g, "").length)[0];
+      setLocalNumber(trimmed);
+      if (!match) {
+        lastEmittedValue.current = undefined;
+        onChange(undefined);
+        return;
+      }
+      const parsedInternational = parsePhoneNumberFromString(trimmed);
+      const matchedCode = parsedInternational?.country && countryOptions.some(country => country.code === parsedInternational.country)
+        ? parsedInternational.country
+        : match.callingCode === "+1" && countryOptions.some(country => country.code === "US") ? "US" : match.code;
+      const matchedCountry = countryOptions.find(country => country.code === matchedCode) || match;
+      setSelectedCountry(matchedCode as CountryCode);
+      const localDigits = rawDigits.slice(matchedCountry.callingCode.replace(/\D/g, "").length);
+      const normalized = localDigits ? matchedCountry.callingCode + localDigits : undefined;
+      lastEmittedValue.current = normalized;
+      onChange(normalized);
       return;
     }
     // Keep the exact national input visible while the user types. Normalize only the value sent to the form.
@@ -103,7 +118,11 @@ export default function PhoneNumberField({
   const selectCountry = (code: CountryCode) => {
     setSelectedCountry(code);
     setOpen(false);
-    emit(code, localNumber);
+    const previousCallingCode = selected?.callingCode || "+225";
+    const nationalValue = localNumber.startsWith("+")
+      ? localNumber.replace(/\D/g, "").slice(previousCallingCode.replace(/\D/g, "").length)
+      : localNumber;
+    emit(code, nationalValue);
   };
 
   return (
