@@ -160,14 +160,14 @@ export default function CountryPhoneInput({ label, countryCode, localValue = "",
         <Input
           className="min-w-0 flex-1"
           type="tel"
-          inputMode="numeric"
+          inputMode="tel"
           autoComplete="tel"
           value={internationalDraft ?? currentLocal}
           disabled={disabled}
           required={required}
           minLength={selected.minLocalDigits}
-          maxLength={selected.maxLocalDigits}
-          placeholder="Numéro local"
+          maxLength={internationalDraft ? (selected.maxLocalDigits || 15) + 4 : selected.maxLocalDigits}
+          placeholder="Numéro local ou international"
           onChange={(event) => handlePhoneInput(event.target.value)}
         />
       </div>
